@@ -18,19 +18,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { role: 1, items: [
       { title: "Home", href: "/home", icon: Map },
-      { title: "Logout", href: "/login", icon: LogOut},
       {title:"Education", href: "/education", icon: Search },
+      { title: "Logout", href: "/login", icon: LogOut}
     ]},
-    { role: 2, items: [
-      { title: "Inventory", href: "/inventory", icon: Package },
-      { title: "Orders", href: "/orders", icon: ClipboardList },
-      { title: "Sales", href: "/sales", icon: Banknote },
-      { title: "Logout", href: "/login", icon: LogOut},
-    ]},
-    { role: 3, items: [
-      { title: "Sales", href: "/sales", icon: Banknote },
-      { title: "Logout", href: "/login", icon: LogOut, }
-    ]}
   ];
 
   const filteredNavItems = navItems.find(nav => nav.role === role)?.items || [];
