@@ -1,6 +1,10 @@
 import React from 'react';
 
-const HorizontalProgressBar = ({ progress }) => {
+type HorizontalProgressBarProps={
+  progress:number
+}
+
+const HorizontalProgressBar = ({ progress }:HorizontalProgressBarProps) => {
   return (
     <div className="w-full bg-gray-200 rounded-full h-4 relative">
       <div

@@ -1,0 +1,29 @@
+{
+    "disasters": [
+      {
+        "id": "1",
+        "type": "Storm",
+        "name": "Chido",
+        "date": "2025-07-05T20:30:00Z",
+        "intensity": 70,
+        "impact_chance": 45
+      },
+      {
+        "id": "2",
+        "type": "Cyclone",
+        "name": "Anna",
+        "date": "2025-08-10T18:00:00Z",
+        "intensity": 60,
+        "impact_chance": 50
+      },
+      {
+        "id": "3",
+        "type": "Floods",
+        "name": "Nsanje floods",
+        "date": "2025-09-15T14:45:00Z",
+        "intensity": 80,
+        "impact_chance": 65
+      }
+    ]
+  }
+  
