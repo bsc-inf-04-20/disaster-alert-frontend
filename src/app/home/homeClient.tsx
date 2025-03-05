@@ -16,6 +16,7 @@ type LinkedEventProps = {
   events:Event[]
 }
 
+//description of an event 
 type Event ={
   id: number,
   type: string,
@@ -25,49 +26,78 @@ type Event ={
   impact_chance: number
 }
 
+
+type Layer = {
+  name: string;
+  data: any;
+  mapIcon:any
+  icon : string 
+};
+
 function HomePageClient({events}:LinkedEventProps) {
 
 
     const healthIcon = L.icon({
-        iconUrl: "health_alt.png", // Place an icon in the public/icons/ folder
+        iconUrl: "medical.png", // Place an icon in the public/icons/ folder
         iconSize: [32, 32], // Adjust size as needed
         iconAnchor: [16, 32], // Center the icon properly
         popupAnchor: [0, -32],
       });
 
-     
-    const filters = [
-      {name:"hospitals", icon: Hospital },
-      {name:"Shelter", icon: Shield },
-      {name:"fire station", icon: FireExtinguisher },
-      {name:"police", icon:  ShieldIcon}
-    ]  
+    const shieldIcon = L.icon({
+        iconUrl: "shield.png", // Place an icon in the public/icons/ folder
+        iconSize: [32, 32], // Adjust size as needed
+        iconAnchor: [16, 32], // Center the icon properly
+        popupAnchor: [0, -32],
+      });
+  
 
+     
+    // const filters = [
+    //   {name:"hospitals", icon: Hospital, value: "hospitalData" },
+    //   {name:"Shelter", icon: Shield , value : "schoolData"},
+    //   {name:"fire station", icon: FireExtinguisher },
+    //   {name:"police", icon:  ShieldIcon}
+    // ]  
+
+
+    //keeping track of which disaster is currently being displayed in detail
     const [currentDisaster, setCurrentDisaster] = useState<Event>(events[0])
 
 
-    const [layers, setLayers] = useState<String []>([])
+    // keeping track of all the layers
+    const [layers, setLayers] = useState<Layer[]>([])
 
-//toggle layer adds or removes a layer to the map when a layer button is clicked    
-    const togglelayer = (targetLayer:String) =>{
 
-      if(layers.includes(targetLayer)){
-        const filteredLayers:String[] = layers.filter(layer=>layer!=targetLayer)
-        setLayers(filteredLayers)
+    // keeping track of all the layers selected to be rendered on to the map
+    const [filteredLayers, setFilteredLayers]= useState<Layer[]>([])
+
+    //toggle layer adds or removes a layer to the map when a layer button is clicked    
+    const togglelayer = (targetLayer:Layer) =>{
+
+      if(filteredLayers.includes(targetLayer)){
+        const filteredLyrs:Layer[] = filteredLayers.filter((layer:Layer)=>layer.name!=targetLayer.name)
+        setFilteredLayers(filteredLyrs)
       }
       else
-       setLayers([...layers, targetLayer])
+       setFilteredLayers([...layers, targetLayer])
     }
 
-    const [geoJsonData, setGeoJsonData] = useState(null);
-
+    //getting the layers information, shelters and hospitals and placing them into the layers state
     useEffect(() => {
         async function loadShapefile() {
           try {
-            const response = await fetch("/hotosm_mwi_health_facilities_points_shp/hotosm_mwi_health_facilities_points_shp.shp"); // Ensure the file is accessible
-            const arrayBuffer = await response.arrayBuffer();
-            const geojson = await shapefile.read(arrayBuffer);
-            setGeoJsonData(geojson);
+            const healthResponse = await fetch("/hotosm_mwi_health_facilities_points_shp/hotosm_mwi_health_facilities_points_shp.shp"); // Ensure the file is accessible
+            const healthArrayBuffer = await healthResponse.arrayBuffer();
+            const healthGeojson = await shapefile.read(healthArrayBuffer);
+            setLayers(prevLayers => [...prevLayers, { name: "health_facility", data: healthGeojson, mapIcon: healthIcon, icon:"medical.png" }]);
+
+            const schoolsResponse  = await fetch("/hotosm_mwi_education_facilities_points_shp/hotosm_mwi_education_facilities_points_shp.shp"); // Ensure the file is accessible
+
+            const schoolsArrayBuffer = await schoolsResponse.arrayBuffer();
+            const schoolGeojson = await shapefile.read(schoolsArrayBuffer);
+            setLayers(prevLayers => [...prevLayers, { name: "shelter", data: schoolGeojson, mapIcon: shieldIcon, icon:"shield.png" }]);
+
           } catch (error) {
             console.error("Error loading shapefile:", error);
           }
@@ -76,8 +106,15 @@ function HomePageClient({events}:LinkedEventProps) {
         loadShapefile();
       }, []);
 
+      //initially grabbing all available layers into the filters
+      useEffect(()=>{
+
+        setFilteredLayers(layers)
+
+      }, [layers])
+
   return (
-    <Card >
+    <Card className='rounded-none'>
         <CardHeader className='flex justify-center'>
             <CardTitle className='flex text-xl font-extrabold justify-center'>
                 Home Page
@@ -85,26 +122,52 @@ function HomePageClient({events}:LinkedEventProps) {
             <CardDescription className='flex justify-center'>Prepare for the next impending disaster </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col md:flex-row  justify-around gap-2">
-          <Card className='md:w-[50%] h-[500px] '>
-            <MapContainer center={[-13.254308, 34.301525]} zoom={6.3} style={{ height: "100%", width: "100%", borderRadius:"2%", borderColor:"orange" }}>
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                      {geoJsonData &&
-                        geoJsonData.features.map((feature: any, index: number) => {
-                        const coords = feature.geometry.coordinates;
-                        return (
-                            <Marker key={index} position={[coords[1], coords[0]]} icon={healthIcon}>
-                            <Popup>
-                                <strong>Health Facility</strong>
-                                <br />
-                                Name: {feature.properties.name || "Unknown"}
-                                <br />
-                                Type: {feature.properties.amenity || "Unknown"}
-                            </Popup>
-                            </Marker>
-                        );
-                        })}
-              </MapContainer>
-            </Card>
+        <Card className="relative md:w-[50%] h-[500px]">
+          <MapContainer
+            center={[-13.254308, 34.301525]}
+            zoom={6.3}
+            style={{ height: "100%", width: "100%", borderRadius: "2%", borderColor: "orange" }}
+          >
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            {filteredLayers &&
+                filteredLayers.map((layer: Layer) =>
+                  layer.data.features.map((feature: any, index: number) => {
+                    const coords = feature.geometry.coordinates;
+                    return (
+                      <Marker key={index} position={[coords[1], coords[0]]} icon={layer.mapIcon}>
+                        <Popup>
+                          <strong>{layer.name}</strong>
+                          <br />
+                          Name: {feature.properties.name || "Unknown"}
+                          <br />
+                          Type: {feature.properties.amenity || "Unknown"}
+                        </Popup>
+                      </Marker>
+                    );
+                  })
+                )}
+   
+          </MapContainer>
+
+          {/* Overlay filter options */}
+          <div className="flex absolute top-4 left-20 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-80 p-2 rounded">
+          {
+              layers.map((layer:Layer)=>{
+                return (
+                  <Button 
+                  key={layer.name}
+                  onClick={()=>togglelayer(layer)}
+                  className={`flex hover:text-black hover:bg-green-200 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                      <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
+                      <span>{layer.name}</span>
+                  </Button>
+                )
+              })
+            }
+          </div>
+        </Card>
+  
+
             <Card className='md:w-[50%] bg-gray-100 p-2'>
               <CardHeader >
                 <CardTitle className='flex justify-center bg-orange-300 rounded-sm p-2'>
@@ -113,14 +176,14 @@ function HomePageClient({events}:LinkedEventProps) {
               </CardHeader>  
                 <div className='flex gap-2 justify-evenly flex-wrap'>
                   {
-                    filters.map((filter)=>{
+                    layers.map((layer:Layer)=>{
                       return (
                         <Button 
-                        key={filter.name}
-                        onClick={()=>togglelayer(filter.name)}
-                        className={`flex hover:text-white hover:bg-green-400 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${layers.includes(filter.name)?'bg-green-400':'bg-white'}`} >
-                            {<filter.icon />}
-                            <span>{filter.name}</span>
+                        key={layer.name}
+                        onClick={()=>togglelayer(layer)}
+                        className={`flex hover:text-black hover:bg-green-200 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                            <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
+                            <span>{layer.name}</span>
                         </Button>
                       )
                     })
