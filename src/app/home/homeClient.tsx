@@ -75,12 +75,12 @@ function HomePageClient({events}:LinkedEventProps) {
     //toggle layer adds or removes a layer to the map when a layer button is clicked    
     const togglelayer = (targetLayer:Layer) =>{
 
-      if(filteredLayers.includes(targetLayer)){
+      if(filteredLayers && filteredLayers.includes(targetLayer)){
         const filteredLyrs:Layer[] = filteredLayers.filter((layer:Layer)=>layer.name!=targetLayer.name)
         setFilteredLayers(filteredLyrs)
       }
-      else
-       setFilteredLayers([...layers, targetLayer])
+      else if(!filteredLayers.includes(targetLayer))
+       setFilteredLayers([...filteredLayers, targetLayer])
     }
 
     //getting the layers information, shelters and hospitals and placing them into the layers state
