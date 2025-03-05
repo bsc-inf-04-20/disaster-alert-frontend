@@ -174,7 +174,7 @@ function HomePageClient({events}:LinkedEventProps) {
                   {currentDisaster?.name}
                 </CardTitle>
               </CardHeader>  
-                <div className='flex gap-2 justify-evenly flex-wrap'>
+                <div className='flex gap-2 justify-items-start flex-wrap pl-6 pr-6'>
                   {
                     layers.map((layer:Layer)=>{
                       return (
