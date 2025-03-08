@@ -55,6 +55,14 @@ function HomePageClient({events}:LinkedEventProps) {
         iconAnchor: [16, 32], // Center the icon properly
         popupAnchor: [0, -32],
       });
+
+
+      const locationIcon = L.icon({
+        iconUrl: "locationIcon.png", // Place an icon in the public/icons/ folder
+        iconSize: [70, 70], // Adjust size as needed
+        iconAnchor: [16, 32], // Center the icon properly
+        popupAnchor: [0, -32],
+      });
   
 
      
@@ -92,19 +100,34 @@ function HomePageClient({events}:LinkedEventProps) {
 
     
     // requesting geo location services
+// Update your requestGeolocation function:
     const requestGeolocation = () => {
+      if (navigator.geolocation) {
+        // Request high accuracy specifically
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            toast.success(`successfully granted location : ${position}`)
+            console.log("Position obtained:", position);
+            toast.success(`Location granted: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
             setLocationEnabled(true);
-            setDialogOpen(false)
+            setCoords(position.coords);
+            setDialogOpen(false);
           },
           (error) => {
-            toast.error(`failed to get user's location: ${error.message}`)
+            console.error("Geolocation error:", error);
+            toast.error(`Location error: ${error.message}`);
             setLocationEnabled(false);
+          },
+          {
+            enableHighAccuracy: true,  // Request GPS if available
+            timeout: 10000,            // Wait up to 10 seconds
+            maximumAge: 0              // Don't use cached position
           }
         );
-      };
+      } else {
+        toast.error("Geolocation is not supported by this browser");
+        setIsGeoLocationPresent(false);
+      }
+    };
 
     //toggle layer adds or removes a layer to the map when a layer button is clicked    
     const togglelayer = (targetLayer:Layer) =>{
@@ -156,12 +179,14 @@ function HomePageClient({events}:LinkedEventProps) {
         setFilteredLayers((prev) => (prev.length === 0 ? layers : prev));
       }, [layers]);
 
-      //tracking whether geo location is enabled
+
 
       const { coords: geoCoords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({ 
         positionOptions: {enableHighAccuracy: true,},
-        userDecisionTimeout: 5000
-      });
+        userDecisionTimeout: 5000,
+        watchPosition: true,
+      },  
+    );
 
       useEffect(() => {
         if (!isGeolocationEnabled) {
@@ -238,6 +263,18 @@ function HomePageClient({events}:LinkedEventProps) {
                     );
                   })
                 )}
+                {coords?
+                  <Marker position={[coords.latitude, coords.longitude]} icon={locationIcon}>
+                    <Popup>
+                        <strong>current location</strong>
+                        <br />
+                        lat: {coords?.latitude}
+                        <br />
+                        lon: {coords?.longitude}
+                    </Popup>
+                  </Marker>:
+                  ""  
+              }
   
           </MapContainer>
 
