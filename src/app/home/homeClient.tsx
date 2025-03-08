@@ -3,18 +3,20 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardDescription, CardTitle, CardFooter } from '@/components/ui/card'
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
 import {Hospital, Shield, FireExtinguisher, ShieldIcon, Download, } from 'lucide-react';
 import "leaflet/dist/leaflet.css";
 import * as shapefile from "shapefile";
 import { GeoJSON } from "react-leaflet";
-import L, { Icon } from "leaflet";
+import L, { icon, Icon} from "leaflet";
 import HorizontalProgressBar from './horizontalGraph';
 import LinkedEvents from './linkedEvents';
 import { useGeolocated } from 'react-geolocated';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import { toast, Toaster } from 'sonner';
 import MapUpdater from './mapUpdater';
+import polyline from '@mapbox/polyline';
+
 
 type LinkedEventProps = {
   events:Event[]
@@ -55,6 +57,13 @@ function HomePageClient({events}:LinkedEventProps) {
         iconAnchor: [16, 32], // Center the icon properly
         popupAnchor: [0, -32],
       });
+
+      const destinationIcon = L.icon({
+        iconUrl: "destination.png", // Place an icon in the public/icons/ folder
+        iconSize: [32, 32], // Adjust size as needed
+        iconAnchor: [16, 32], // Center the icon properly
+        popupAnchor: [0, -32],
+      });  
 
 
       const locationIcon = L.icon({
@@ -180,13 +189,67 @@ function HomePageClient({events}:LinkedEventProps) {
       }, [layers]);
 
 
-
+   //grabbing current location
       const { coords: geoCoords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({ 
         positionOptions: {enableHighAccuracy: true,},
         userDecisionTimeout: 5000,
         watchPosition: true,
       },  
     );
+
+
+    const [waypoints, setWaypoints] = useState<[number, number][]>([]);
+    const [route, setRoute] = useState<[number, number][]>([]);
+    const [destination, setDestination] = useState<any[]>([]);
+
+
+
+      // Handle map clicks to set waypoints
+
+      const GRAPHOPPER_API_KEY = "f0c392f0-13b6-4fc2-90f4-356817bfdfec"
+
+    
+      const MapClickHandler = () => {
+        useMapEvents({
+          click(e) {
+            if (waypoints.length < 2) {
+              setWaypoints([[coords!.latitude, coords!.longitude], [e.latlng.lat, e.latlng.lng]])
+            }
+          },
+        });
+        return null;
+      };
+
+      useEffect(()=>{
+        getRoute()
+      }, [waypoints])
+
+      // Fetch route from GraphHopper
+      const getRoute = async () => {
+        if (waypoints.length < 2) return;
+
+        console.log(" in the get route")
+        
+        const url = `https://graphhopper.com/api/1/route?point=${waypoints[0][0]},${waypoints[0][1]}&point=${waypoints[1][0]},${waypoints[1][1]}&profile=foot&locale=en&calc_points=true&key=${GRAPHOPPER_API_KEY}`;
+
+        try {
+          const response = await fetch(url);
+          const preparedResponse =await response.json() 
+          console.log(preparedResponse)    
+          const coords = preparedResponse.paths[0].points
+          console.log(coords)  
+          const decodedCoords = polyline.decode(coords)
+          console.log(decodedCoords)  
+          toast.success("route successfully generated")
+          setRoute(decodedCoords); // Convert to Leaflet format
+          console.log("successfully set route")
+        } catch (error) {
+          console.error("Error fetching route:", error);
+          toast.error(`route could not be generated: ${error}`)
+        }
+      };
+
+      useEffect
 
       useEffect(() => {
         if (!isGeolocationEnabled) {
@@ -202,6 +265,10 @@ function HomePageClient({events}:LinkedEventProps) {
 
   return (
    <div>
+      <Toaster
+        position="top-right"
+        theme='system'
+      />
     {!isGeolocationPresent?
     <div className='flex justify-center items-center h-screen'>
       <div className='text-center text-2xl font-semibold items-center'>Your browser does not support Geo location</div>
@@ -246,6 +313,10 @@ function HomePageClient({events}:LinkedEventProps) {
           >
             <MapUpdater coords={coords}/>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <MapClickHandler />
+              {/* {waypoints.map((pos, idx) => (
+                <Marker key={idx} position={pos} />
+              ))} */}
             {filteredLayers &&
                 filteredLayers.map((layer: Layer) =>
                   layer.data.features.map((feature: any, index: number) => {
@@ -275,7 +346,9 @@ function HomePageClient({events}:LinkedEventProps) {
                   </Marker>:
                   ""  
               }
-  
+            {route.length > 0 && <Polyline positions={route} color="blue" />}
+            {route.length > 0 && <Marker position={waypoints[1]} icon={destinationIcon}></Marker>}
+
           </MapContainer>
 
           {/* Overlay filter options */}
