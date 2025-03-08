@@ -85,33 +85,42 @@ function HomePageClient({events}:LinkedEventProps) {
 
     //getting the layers information, shelters and hospitals and placing them into the layers state
     useEffect(() => {
-        async function loadShapefile() {
+      async function loadShapefile() {
           try {
-            const healthResponse = await fetch("/hotosm_mwi_health_facilities_points_shp/hotosm_mwi_health_facilities_points_shp.shp"); // Ensure the file is accessible
-            const healthArrayBuffer = await healthResponse.arrayBuffer();
-            const healthGeojson = await shapefile.read(healthArrayBuffer);
-            setLayers(prevLayers => [...prevLayers, { name: "health_facility", data: healthGeojson, mapIcon: healthIcon, icon:"medical.png" }]);
-
-            const schoolsResponse  = await fetch("/hotosm_mwi_education_facilities_points_shp/hotosm_mwi_education_facilities_points_shp.shp"); // Ensure the file is accessible
-
-            const schoolsArrayBuffer = await schoolsResponse.arrayBuffer();
-            const schoolGeojson = await shapefile.read(schoolsArrayBuffer);
-            setLayers(prevLayers => [...prevLayers, { name: "shelter", data: schoolGeojson, mapIcon: shieldIcon, icon:"shield.png" }]);
-
+              const healthResponse = await fetch("/hotosm_mwi_health_facilities_points_shp/hotosm_mwi_health_facilities_points_shp.shp");
+              const healthArrayBuffer = await healthResponse.arrayBuffer();
+              const healthGeojson = await shapefile.read(healthArrayBuffer);
+  
+              const schoolsResponse = await fetch("/hotosm_mwi_education_facilities_points_shp/hotosm_mwi_education_facilities_points_shp.shp");
+              const schoolsArrayBuffer = await schoolsResponse.arrayBuffer();
+              const schoolGeojson = await shapefile.read(schoolsArrayBuffer);
+  
+              // Only update state if layers are not already present
+              setLayers(prevLayers => {
+                  const newLayers = [...prevLayers];
+                  
+                  if (!prevLayers.some(layer => layer.name === "health_facility")) {
+                      newLayers.push({ name: "health_facility", data: healthGeojson, mapIcon: healthIcon, icon: "medical.png" });
+                  }
+                  if (!prevLayers.some(layer => layer.name === "shelter")) {
+                      newLayers.push({ name: "shelter", data: schoolGeojson, mapIcon: shieldIcon, icon: "shield.png" });
+                  }
+  
+                  return newLayers;
+              });
+  
           } catch (error) {
-            console.error("Error loading shapefile:", error);
+              console.error("Error loading shapefile:", error);
           }
-        }
-    
-        loadShapefile();
-      }, []);
+      }
+  
+      loadShapefile();
+  }, []);
 
       //initially grabbing all available layers into the filters
-      useEffect(()=>{
-
-        setFilteredLayers(layers)
-
-      }, [layers])
+      useEffect(() => {
+        setFilteredLayers((prev) => (prev.length === 0 ? layers : prev));
+      }, [layers]);
 
   return (
     <Card className='rounded-none'>
@@ -157,7 +166,7 @@ function HomePageClient({events}:LinkedEventProps) {
                   <Button 
                   key={layer.name}
                   onClick={()=>togglelayer(layer)}
-                  className={`flex hover:text-black hover:bg-green-200 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                  className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
                       <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
                       <span>{layer.name}</span>
                   </Button>
@@ -181,7 +190,7 @@ function HomePageClient({events}:LinkedEventProps) {
                         <Button 
                         key={layer.name}
                         onClick={()=>togglelayer(layer)}
-                        className={`flex hover:text-black hover:bg-green-200 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                        className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
                             <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
                             <span>{layer.name}</span>
                         </Button>
