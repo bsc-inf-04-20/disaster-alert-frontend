@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
-import { MapContainer, TileLayer, Marker, Popup, } from "react-leaflet";
+import { Card, CardHeader, CardContent, CardDescription, CardTitle, CardFooter } from '@/components/ui/card'
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import {Hospital, Shield, FireExtinguisher, ShieldIcon, Download, } from 'lucide-react';
 import "leaflet/dist/leaflet.css";
 import * as shapefile from "shapefile";
@@ -11,6 +11,10 @@ import { GeoJSON } from "react-leaflet";
 import L, { Icon } from "leaflet";
 import HorizontalProgressBar from './horizontalGraph';
 import LinkedEvents from './linkedEvents';
+import { useGeolocated } from 'react-geolocated';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import MapUpdater from './mapUpdater';
 
 type LinkedEventProps = {
   events:Event[]
@@ -37,6 +41,7 @@ type Layer = {
 function HomePageClient({events}:LinkedEventProps) {
 
 
+
     const healthIcon = L.icon({
         iconUrl: "medical.png", // Place an icon in the public/icons/ folder
         iconSize: [32, 32], // Adjust size as needed
@@ -60,6 +65,19 @@ function HomePageClient({events}:LinkedEventProps) {
     //   {name:"police", icon:  ShieldIcon}
     // ]  
 
+    //tracking the open-closed state of the "get location dialog"
+    const [dialogOpen, setDialogOpen] = useState(true);
+
+    // is location available
+    const [isGeolocationPresent, setIsGeoLocationPresent] = useState<boolean>()
+
+
+    //tracking whether location is enabled or not
+    const [locationEnabled, setLocationEnabled] = useState(true);
+
+    //tracking the coords when the location is enabled
+    const [coords, setCoords] =useState<GeolocationCoordinates>()
+
 
     //keeping track of which disaster is currently being displayed in detail
     const [currentDisaster, setCurrentDisaster] = useState<Event>(events[0])
@@ -71,6 +89,22 @@ function HomePageClient({events}:LinkedEventProps) {
 
     // keeping track of all the layers selected to be rendered on to the map
     const [filteredLayers, setFilteredLayers]= useState<Layer[]>([])
+
+    
+    // requesting geo location services
+    const requestGeolocation = () => {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            toast.success(`successfully granted location : ${position}`)
+            setLocationEnabled(true);
+            setDialogOpen(false)
+          },
+          (error) => {
+            toast.error(`failed to get user's location: ${error.message}`)
+            setLocationEnabled(false);
+          }
+        );
+      };
 
     //toggle layer adds or removes a layer to the map when a layer button is clicked    
     const togglelayer = (targetLayer:Layer) =>{
@@ -122,7 +156,55 @@ function HomePageClient({events}:LinkedEventProps) {
         setFilteredLayers((prev) => (prev.length === 0 ? layers : prev));
       }, [layers]);
 
+      //tracking whether geo location is enabled
+
+      const { coords: geoCoords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({ 
+        positionOptions: {enableHighAccuracy: true,},
+        userDecisionTimeout: 5000
+      });
+
+      useEffect(() => {
+        if (!isGeolocationEnabled) {
+          setLocationEnabled(false);
+          setCoords(geoCoords);
+          setIsGeoLocationPresent(isGeolocationAvailable);
+        } else {
+          setLocationEnabled(true);
+          setCoords(geoCoords);
+          setIsGeoLocationPresent(true);
+        }
+      }, [isGeolocationEnabled, geoCoords, isGeolocationAvailable]);
+
   return (
+   <div>
+    {!isGeolocationPresent?
+    <div className='flex justify-center items-center h-screen'>
+      <div className='text-center text-2xl font-semibold items-center'>Your browser does not support Geo location</div>
+    </div>:
+    !locationEnabled?
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+    <DialogContent className='block'>
+        <DialogTitle className='text-center'>
+          Location Services
+        </DialogTitle>
+        <Card className='flex flex-col items-center m-2 rounded-md'>
+          <CardHeader>
+              <CardTitle className='text-center'>
+                  Geo Location is not enabled
+              </CardTitle>
+              <CardDescription>
+                  Geo location services are available but disabled
+              </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+                onClick={()=>requestGeolocation()}
+                > Enable Geo Location
+            </Button>
+          </CardContent>
+       </Card>
+    </DialogContent>
+    </Dialog>:
     <Card className='rounded-none'>
         <CardHeader className='flex justify-center'>
             <CardTitle className='flex text-xl font-extrabold justify-center'>
@@ -133,10 +215,11 @@ function HomePageClient({events}:LinkedEventProps) {
         <CardContent className="flex flex-col md:flex-row  justify-around gap-2">
         <Card className="relative md:w-[50%] h-[500px]">
           <MapContainer
-            center={[-13.254308, 34.301525]}
-            zoom={6.3}
+            center={ coords?[coords.latitude, coords.longitude]:[-13.254308, 34.301525]}
+            zoom={coords ? 19 :6.3}
             style={{ height: "100%", width: "100%", borderRadius: "2%", borderColor: "orange" }}
           >
+            <MapUpdater coords={coords}/>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
             {filteredLayers &&
                 filteredLayers.map((layer: Layer) =>
@@ -155,7 +238,7 @@ function HomePageClient({events}:LinkedEventProps) {
                     );
                   })
                 )}
-   
+  
           </MapContainer>
 
           {/* Overlay filter options */}
@@ -221,7 +304,7 @@ function HomePageClient({events}:LinkedEventProps) {
                       Intesity
                     </div>
                     <div>
-                     <HorizontalProgressBar progress={currentDisaster!.intensity}/>
+                    <HorizontalProgressBar progress={currentDisaster!.intensity}/>
                     </div>
                   </div>
                   <div className='flex flex-col md:flex-row gap-2 justify-between p-5'>
@@ -239,7 +322,13 @@ function HomePageClient({events}:LinkedEventProps) {
             </Card>   
         </CardContent>
     </Card>
+     }
+  </div>
   )
 }
 
 export default HomePageClient
+
+function useMap() {
+  throw new Error('Function not implemented.');
+}
