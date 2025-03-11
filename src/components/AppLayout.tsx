@@ -116,7 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main content */}
-      <main className={`${isLoginPage ? 'w-full' : 'flex-1'} ${!isLoginPage ? 'md:pt-0 pt-16' : ''} overflow-auto bg-gray-50 print:w-full print:m-0 print:p-0 print:bg-white`}>
+      <main className={`${isLoginPage ? 'w-full' : 'flex-1'} ${!isLoginPage ? 'md:pt-0 pt-16' : ''} overflow-auto bg-gray-50 print:w-full print:m-0 print:p-0 print:bg-white `}>
         {children}
       </main>
     </div>

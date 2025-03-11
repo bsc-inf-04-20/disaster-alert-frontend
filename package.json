@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": " concurrently \"json-server --watch db.json --port 4000\" \"next dev --turbopack\"",
+    "dev": " concurrently \"json-server --watch db.json --port 4000\" \"next dev --turbopack --experimental-https\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardDescription, CardTitle, CardFooter } from '@/components/ui/card'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
-import {Hospital, Shield, FireExtinguisher, ShieldIcon, Download, } from 'lucide-react';
+import {Hospital, Shield, FireExtinguisher, ShieldIcon, Download} from 'lucide-react';
 import "leaflet/dist/leaflet.css";
 import * as shapefile from "shapefile";
 import { GeoJSON } from "react-leaflet";
@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast, Toaster } from 'sonner';
 import MapUpdater from './mapUpdater';
 import polyline from '@mapbox/polyline';
+import NavigationInstructions from './navInstructions'
 
 
 type LinkedEventProps = {
@@ -92,7 +93,7 @@ function HomePageClient({events}:LinkedEventProps) {
     //tracking whether location is enabled or not
     const [locationEnabled, setLocationEnabled] = useState(true);
 
-    //tracking the coords when the location is enabled
+    //tracking the user's coords when the location is enabled
     const [coords, setCoords] =useState<GeolocationCoordinates>()
 
 
@@ -198,9 +199,16 @@ function HomePageClient({events}:LinkedEventProps) {
     );
 
 
+    //tracking starting and ending points
     const [waypoints, setWaypoints] = useState<[number, number][]>([]);
+
+    //keeping the route points
     const [route, setRoute] = useState<[number, number][]>([]);
-    const [destination, setDestination] = useState<any[]>([]);
+
+    //tracking navigation instructions
+    const [navInstructions, setNavInstructions] = useState<any[] | null> ([])
+
+    const [navDistance, setNavDistance] = useState<number| null>()
 
 
 
@@ -212,8 +220,12 @@ function HomePageClient({events}:LinkedEventProps) {
       const MapClickHandler = () => {
         useMapEvents({
           click(e) {
-            if (waypoints.length < 2) {
-              setWaypoints([[coords!.latitude, coords!.longitude], [e.latlng.lat, e.latlng.lng]])
+            if (waypoints.length === 0) {
+              // First click: set start and destination at once
+              setWaypoints([[coords!.latitude, coords!.longitude], [e.latlng.lat, e.latlng.lng]]);
+            } else {
+              // Subsequent clicks: update only the destination
+              setWaypoints(([start]) => [start, [e.latlng.lat, e.latlng.lng]]);
             }
           },
         });
@@ -226,6 +238,7 @@ function HomePageClient({events}:LinkedEventProps) {
 
       // Fetch route from GraphHopper
       const getRoute = async () => {
+
         if (waypoints.length < 2) return;
 
         console.log(" in the get route")
@@ -240,8 +253,14 @@ function HomePageClient({events}:LinkedEventProps) {
           console.log(coords)  
           const decodedCoords = polyline.decode(coords)
           console.log(decodedCoords)  
+          const navInstructions = preparedResponse.paths[0].instructions
+          const distance =preparedResponse.paths[0].distance
+
+          console.log(`the nav instructions: ${navInstructions} the nav distance : ${distance}`)
           toast.success("route successfully generated")
           setRoute(decodedCoords); // Convert to Leaflet format
+          setNavDistance(distance)
+          setNavInstructions(navInstructions)
           console.log("successfully set route")
         } catch (error) {
           console.error("Error fetching route:", error);
@@ -298,81 +317,84 @@ function HomePageClient({events}:LinkedEventProps) {
     </DialogContent>
     </Dialog>:
     <Card className='rounded-none'>
-        <CardHeader className='flex justify-center'>
-            <CardTitle className='flex text-xl font-extrabold justify-center'>
-                Home Page
-            </CardTitle>
-            <CardDescription className='flex justify-center'>Prepare for the next impending disaster </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col md:flex-row  justify-around gap-2">
-        <Card className="relative md:w-[50%] h-[500px]">
-          <MapContainer
-            center={ coords?[coords.latitude, coords.longitude]:[-13.254308, 34.301525]}
-            zoom={coords ? 19 :6.3}
-            style={{ height: "100%", width: "100%", borderRadius: "2%", borderColor: "orange" }}
-          >
-            <MapUpdater coords={coords}/>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <MapClickHandler />
-              {/* {waypoints.map((pos, idx) => (
-                <Marker key={idx} position={pos} />
-              ))} */}
-            {filteredLayers &&
-                filteredLayers.map((layer: Layer) =>
-                  layer.data.features.map((feature: any, index: number) => {
-                    const coords = feature.geometry.coordinates;
-                    return (
-                      <Marker key={index} position={[coords[1], coords[0]]} icon={layer.mapIcon}>
-                        <Popup>
-                          <strong>{layer.name}</strong>
-                          <br />
-                          Name: {feature.properties.name || "Unknown"}
-                          <br />
-                          Type: {feature.properties.amenity || "Unknown"}
-                        </Popup>
-                      </Marker>
-                    );
-                  })
-                )}
-                {coords?
-                  <Marker position={[coords.latitude, coords.longitude]} icon={locationIcon}>
-                    <Popup>
-                        <strong>current location</strong>
-                        <br />
-                        lat: {coords?.latitude}
-                        <br />
-                        lon: {coords?.longitude}
-                    </Popup>
-                  </Marker>:
-                  ""  
-              }
-            {route.length > 0 && <Polyline positions={route} color="blue" />}
-            {route.length > 0 && <Marker position={waypoints[1]} icon={destinationIcon}></Marker>}
 
-          </MapContainer>
+              <CardHeader className='flex justify-center'>
+                  <CardTitle className='flex text-xl font-extrabold justify-center'>
+                      Home Page
+                  </CardTitle>
+                  <CardDescription className='flex justify-center'>Prepare for the next impending disaster </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col md:flex-row  justify-around gap-2">
+            <div className='flex flex-col gap-2 md:w-[50%] h-screen'>    
+                      <Card className="relative md:w-[100%] h-[500px]">
+                        <MapContainer
+                          center={ coords?[coords.latitude, coords.longitude]:[-13.254308, 34.301525]}
+                          zoom={coords ? 19 :6.3}
+                          style={{ height: "100%", width: "100%", borderRadius: "2%", borderColor: "orange" }}
+                        >
+                          <MapUpdater coords={coords}/>
+                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                          <MapClickHandler />
+                            {/* {waypoints.map((pos, idx) => (
+                              <Marker key={idx} position={pos} />
+                            ))} */}
+                          {filteredLayers &&
+                              filteredLayers.map((layer: Layer) =>
+                                layer.data.features.map((feature: any, index: number) => {
+                                  const coords = feature.geometry.coordinates;
+                                  return (
+                                    <Marker key={index} position={[coords[1], coords[0]]} icon={layer.mapIcon}>
+                                      <Popup>
+                                        <strong>{layer.name}</strong>
+                                        <br />
+                                        Name: {feature.properties.name || "Unknown"}
+                                        <br />
+                                        Type: {feature.properties.amenity || "Unknown"}
+                                      </Popup>
+                                    </Marker>
+                                  );
+                                })
+                              )}
+                              {coords?
+                                <Marker position={[coords.latitude, coords.longitude]} icon={locationIcon}>
+                                  <Popup>
+                                      <strong>current location</strong>
+                                      <br />
+                                      lat: {coords?.latitude}
+                                      <br />
+                                      lon: {coords?.longitude}
+                                  </Popup>
+                                </Marker>:
+                                ""  
+                            }
+                          {route.length > 0 && <Polyline positions={route} color="blue" />}
+                          {route.length > 0 && <Marker position={waypoints[1]} icon={destinationIcon}></Marker>}
 
-          {/* Overlay filter options */}
-          <div className="flex absolute top-4 left-20 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-80 p-2 rounded">
-          {
-              layers.map((layer:Layer)=>{
-                return (
-                  <Button 
-                  key={layer.name}
-                  onClick={()=>togglelayer(layer)}
-                  className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
-                      <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
-                      <span>{layer.name}</span>
-                  </Button>
-                )
-              })
-            }
-          </div>
-        </Card>
-  
+                        </MapContainer>
+
+                        {/* Overlay filter options */}
+                        <div className="flex absolute top-4 left-20 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-80 p-2 rounded">
+                        {
+                            layers.map((layer:Layer)=>{
+                              return (
+                                <Button 
+                                key={layer.name}
+                                onClick={()=>togglelayer(layer)}
+                                className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                                    <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
+                                    <span>{layer.name}</span>
+                                </Button>
+                              )
+                            })
+                          }
+                        </div>  
+                      </Card>
+                      <NavigationInstructions route={route} instructions={navInstructions} userLocation={coords} />  
+            </div>
 
             <Card className='md:w-[50%] bg-gray-100 p-2'>
               <CardHeader >
-                <CardTitle className='flex justify-center bg-orange-300 rounded-sm p-2'>
+                <CardTitle className='flex justify-center bg-orange-200 rounded-sm p-2'>
                   {currentDisaster?.name}
                 </CardTitle>
               </CardHeader>  
