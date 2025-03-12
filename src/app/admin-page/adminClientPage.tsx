@@ -24,6 +24,7 @@ import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast, Toaster } from 'sonner';
 import { Input } from '@/components/ui/input';
+import Fuse from 'fuse.js'
 
 type DisastersSum = {
         Pending:Disaster[], 
@@ -60,29 +61,37 @@ function AdminClientPage({ allDisasters}: clientprops) {
 
     //tracking the search for the different disasters
     const [disasterSearch, setDisasterSearch] = useState<{
-                                pendingSearch:String, 
-                                approvedSearch:String, 
-                                declinedSearch:String}>({
+                                pendingSearch:string, 
+                                approvedSearch:string, 
+                                declinedSearch:string}>({
                     pendingSearch:"",
                     approvedSearch:"",
                     declinedSearch:""
                     })
 
 
-    //initial classification of disasters  into state              
+           
+    //updating the disasters based on search and on initial render
     useEffect(() => {
+        const originalDisasters = {
+            Pending: allDisasters.filter((disaster: Disaster) => disaster.status === "Pending"),
+            Approved: allDisasters.filter((disaster: Disaster) => disaster.status === "Approved"),
+            Declined: allDisasters.filter((disaster: Disaster) => disaster.status === "Declined")
+        };
+
+        // Apply search filtering if needed
         setDisasters({
-          Pending: allDisasters.filter((disaster: Disaster) => disaster.status === "Pending"),
-          Approved: allDisasters.filter((disaster: Disaster) => disaster.status === "Approved"),
-          Declined: allDisasters.filter((disaster: Disaster) => disaster.status === "Declined")
+            Pending: disasterSearch.pendingSearch 
+                ? fuzzySearch('Pending', disasterSearch.pendingSearch) 
+                : originalDisasters.Pending,
+            Approved: disasterSearch.approvedSearch 
+                ? fuzzySearch('Approved', disasterSearch.approvedSearch) 
+                : originalDisasters.Approved,
+            Declined: disasterSearch.declinedSearch 
+                ? fuzzySearch('Declined', disasterSearch.declinedSearch) 
+                : originalDisasters.Declined
         });
-    }, [allDisasters]);
-
-
-    //updating the disasters based on search
-    useEffect(() => {
-
-    }, [disasterSearch]);
+    }, [disasterSearch, allDisasters]);
     
 
     //changing the status of a disaster
@@ -115,8 +124,26 @@ function AdminClientPage({ allDisasters}: clientprops) {
         
     }
 
-    const fuzzySearch = (disastertype:string) =>{
- 
+    const fuzzySearch = (disasterType:string, searchText:string) => {
+        if (!searchText || searchText.trim() === "") {
+            return disasters[disasterType];
+        }
+        
+        const options = {
+            keys: [
+                'name',
+                'type',
+                'id'
+            ],
+            threshold: 0.7,
+            includeScore: true
+        };
+        
+        const fuse = new Fuse(disasters[disasterType], options);
+        const result = fuse.search(searchText);
+        
+        // Return the item from each result
+        return result.map(item => item.item);
     }
 
     return (
@@ -146,7 +173,16 @@ function AdminClientPage({ allDisasters}: clientprops) {
                         </TabsList>
                         <TabsContent value='pending-disasters' className='flex flex-col items-center gap-2'>
                             <div className='w-2/3 m-0'>
-                                <Input type="text" placeholder="search pending disasters..." className='text-center font-bold bg-gray-100' />
+                                <Input 
+                                        type="text" 
+                                        placeholder="search pending disasters..." 
+                                        className='text-center font-bold bg-gray-100'
+                                        value={disasterSearch.pendingSearch}
+                                        onChange={(e) => setDisasterSearch(prev => ({
+                                            ...prev,
+                                            pendingSearch: e.target.value
+                                        }))}
+                                    />
                             </div>
                             <Table className='w-full'>
                                 <TableCaption>Disasters pending decision.</TableCaption>
@@ -198,7 +234,16 @@ function AdminClientPage({ allDisasters}: clientprops) {
                         </TabsContent>
                         <TabsContent value='approved-disasters' className='flex flex-col items-center m-0 '>
                             <div className='w-2/3 m-0'>
-                                <Input type="text" placeholder="search approved disasters..." className='text-center font-bold bg-gray-100' />
+                                <Input 
+                                    type="text" 
+                                    placeholder="search approved disasters..." 
+                                    className='text-center font-bold bg-gray-100'
+                                    value={disasterSearch.approvedSearch} 
+                                    onChange={(e) => setDisasterSearch(prev => ({
+                                        ...prev,
+                                        approvedSearch: e.target.value
+                                    }))}
+                                />
                             </div>
                             <Table className='w-full'>
                                     <TableCaption>Approved disasters.</TableCaption>
@@ -249,7 +294,16 @@ function AdminClientPage({ allDisasters}: clientprops) {
                         </TabsContent>
                         <TabsContent value='declined-disasters' className='flex flex-col items-center m-0 '>
                             <div className='w-2/3 m-0'>
-                                <Input type="text" placeholder="search declined disasters..." className='text-center font-bold bg-gray-100' />
+                            <Input 
+                                type="text" 
+                                placeholder="search declined disasters..." 
+                                className='text-center font-bold bg-gray-100'
+                                value={disasterSearch.declinedSearch}
+                                onChange={(e) => setDisasterSearch(prev => ({
+                                    ...prev,
+                                    declinedSearch: e.target.value
+                                }))}
+                            />
                             </div>
                             <Table className='w-full'>
                                     <TableCaption>Declined disasters.</TableCaption>
