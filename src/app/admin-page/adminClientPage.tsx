@@ -139,7 +139,7 @@ function AdminClientPage({ allDisasters}: clientprops) {
         if (searchText && searchText.trim() !== "") {
         const options = {
             keys: ['name', 'type', 'id'],
-            threshold: 0.7,
+            threshold: 0.4,
             includeScore: true
         };
         
