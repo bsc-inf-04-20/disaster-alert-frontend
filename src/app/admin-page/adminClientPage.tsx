@@ -22,6 +22,8 @@ import {
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { toast, Toaster } from 'sonner';
+import { Input } from '@/components/ui/input';
 
 type DisastersSum = {
         Pending:Disaster[], 
@@ -56,6 +58,18 @@ function AdminClientPage({ allDisasters}: clientprops) {
     })
 
 
+    //tracking the search for the different disasters
+    const [disasterSearch, setDisasterSearch] = useState<{
+                                pendingSearch:String, 
+                                approvedSearch:String, 
+                                declinedSearch:String}>({
+                    pendingSearch:"",
+                    approvedSearch:"",
+                    declinedSearch:""
+                    })
+
+
+    //initial classification of disasters  into state              
     useEffect(() => {
         setDisasters({
           Pending: allDisasters.filter((disaster: Disaster) => disaster.status === "Pending"),
@@ -63,6 +77,12 @@ function AdminClientPage({ allDisasters}: clientprops) {
           Declined: allDisasters.filter((disaster: Disaster) => disaster.status === "Declined")
         });
     }, [allDisasters]);
+
+
+    //updating the disasters based on search
+    useEffect(() => {
+
+    }, [disasterSearch]);
     
 
     //changing the status of a disaster
@@ -79,7 +99,11 @@ function AdminClientPage({ allDisasters}: clientprops) {
                 ...disaster,
                 status:toStatus
             }),
-        });
+        }).catch(error=>{
+            toast.error(`failed to change the status of ${disaster.type} ${disaster.name} to ${toStatus}`)
+        })
+
+        toast.success(`successfully changed the status of ${disaster.type} ${disaster.name} to ${toStatus}` )
 
 
         setDisasters((prevDisasters:DisastersSum)=>({
@@ -91,8 +115,16 @@ function AdminClientPage({ allDisasters}: clientprops) {
         
     }
 
+    const fuzzySearch = (disastertype:string) =>{
+ 
+    }
+
     return (
         <Card className='rounded-none w-full'>
+            <Toaster
+            position="top-right"
+            theme='system'
+            />
             <CardContent className='w-full'>
                 <CardHeader>
                     <CardTitle className='text-xl font-extrabold justify-start text-center'>
@@ -101,7 +133,7 @@ function AdminClientPage({ allDisasters}: clientprops) {
                 </CardHeader>
                 <div className='flex flex-col items-center'>
                     <Tabs defaultValue="pending-disasters" className='w-full'>
-                        <TabsList className='flex justify-evenly'> {/* Ensuring tabs are placed horizontally */}
+                        <TabsList className='flex justify-evenly m-0'> {/* Ensuring tabs are placed horizontally */}
                             <TabsTrigger value='pending-disasters' className='w-1/3'>
                                 Pending
                             </TabsTrigger>
@@ -112,7 +144,10 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                 Declined
                             </TabsTrigger>
                         </TabsList>
-                        <TabsContent value='pending-disasters'>
+                        <TabsContent value='pending-disasters' className='flex flex-col items-center gap-2'>
+                            <div className='w-2/3 m-0'>
+                                <Input type="text" placeholder="search pending disasters..." className='text-center font-bold bg-gray-100' />
+                            </div>
                             <Table className='w-full'>
                                 <TableCaption>Disasters pending decision.</TableCaption>
                                 <TableHeader>
@@ -161,7 +196,10 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                 </TableBody>
                             </Table>
                         </TabsContent>
-                        <TabsContent value='approved-disasters'>
+                        <TabsContent value='approved-disasters' className='flex flex-col items-center m-0 '>
+                            <div className='w-2/3 m-0'>
+                                <Input type="text" placeholder="search approved disasters..." className='text-center font-bold bg-gray-100' />
+                            </div>
                             <Table className='w-full'>
                                     <TableCaption>Approved disasters.</TableCaption>
                                     <TableHeader>
@@ -209,7 +247,10 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                     </TableBody>
                                 </Table>
                         </TabsContent>
-                        <TabsContent value='declined-disasters'>
+                        <TabsContent value='declined-disasters' className='flex flex-col items-center m-0 '>
+                            <div className='w-2/3 m-0'>
+                                <Input type="text" placeholder="search declined disasters..." className='text-center font-bold bg-gray-100' />
+                            </div>
                             <Table className='w-full'>
                                     <TableCaption>Declined disasters.</TableCaption>
                                     <TableHeader>

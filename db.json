@@ -7,7 +7,7 @@
       "date": "2025-07-05T20:30:00Z",
       "intensity": 70,
       "impact_chance": 45,
-      "status": "Declined"
+      "status": "Pending"
     },
     {
       "id": "2",
@@ -20,39 +20,39 @@
     },
     {
       "id": "3",
-      "type": "Floods",
-      "name": "Nsanje floods",
-      "date": "2025-09-15T14:45:00Z",
+      "type": "Cyclone",
+      "name": "Freddy",
+      "date": "2023-09-15T14:45:00Z",
       "intensity": 80,
       "impact_chance": 65,
       "status": "Approved"
     },
     {
       "id": "4",
-      "type": "Storm",
-      "name": "Hendix",
-      "date": "2025-07-10T14:45:00Z",
-      "intensity": 20,
+      "type": "Flood",
+      "name": "Nsanje floods",
+      "date": "2025-09-15T14:45:00Z",
+      "intensity": 50,
       "impact_chance": 65,
-      "status": "Declined"
+      "status": "Pending"
     },
     {
       "id": "5",
       "type": "Cyclone",
-      "name": "Freddy",
-      "date": "2023-07-10T14:45:00Z",
-      "intensity": 70,
-      "impact_chance": 65,
-      "status": "Pending"
+      "name": "Gombe",
+      "date": "2025-09-15T14:45:00Z",
+      "intensity": 30,
+      "impact_chance": 75,
+      "status": "Approved"
     },
     {
       "id": "6",
-      "type": "Storm",
-      "name": "Storm Jude",
-      "date": "2025-07-10T14:45:00Z",
-      "intensity": 20,
+      "type": "Floods",
+      "name": "Nsanje floods",
+      "date": "2024-09-15T14:45:00Z",
+      "intensity": 80,
       "impact_chance": 65,
-      "status": "Pending"
+      "status": "Declined"
     }
   ]
 }
