@@ -24,18 +24,25 @@ import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { toast, Toaster } from 'sonner';
 import { Input } from '@/components/ui/input';
-import Fuse from 'fuse.js'
+import Fuse from 'fuse.js';
+import 'react-date-range/dist/styles.css'; // main style file
+import 'react-date-range/dist/theme/default.css'; // theme css file
+import { DateRange } from 'react-date-range';
+import { format, isWithinInterval } from 'date-fns';
 
+// all disasters
 type DisastersSum = {
         Pending:Disaster[], 
         Approved:Disaster[], 
         Declined:Disaster[]
 }
 
+//props from the parent, page.tsx
 type clientprops = {
     allDisasters: [],
 }
 
+//Disaster information structure
 type Disaster = {
     id: number,
     type: string,
@@ -49,6 +56,7 @@ type Disaster = {
 function AdminClientPage({ allDisasters}: clientprops) {
 
 
+    // tracking all the disasters 
     const [disasters, setDisasters] = useState<{
                                 Pending:Disaster[], 
                                 Approved:Disaster[], 
@@ -69,29 +77,150 @@ function AdminClientPage({ allDisasters}: clientprops) {
                     declinedSearch:""
                     })
 
+    //tracking the date picker within each tab 
+    const [dateRanges, setDateRanges] = useState({
+                    pendingRange: {
+                        startDate: new Date(new Date().setFullYear(new Date().getFullYear() - 10)), // Default to the last 10 years
+                        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Default to a year ahead
+                        key: 'pendingSelection'
+                    },
+                    approvedRange: {
+                        startDate: new Date(new Date().setFullYear(new Date().getFullYear() - 10)), // Default to the last 10 years
+                        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Default to a year ahead
+                        key: 'approvedSelection'
+                    },
+                    declinedRange: {
+                        startDate: new Date(new Date().setFullYear(new Date().getFullYear() - 10)), // Default to the last 10 years
+                        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // Default to a year ahead
+                        key: 'declinedSelection'
+                    }
+                    });
 
-           
-    //updating the disasters based on search and on initial render
+    //ariables to control the visibility of date pickers
+    const [showDatePicker, setShowDatePicker] = useState({
+        pending: false,
+        approved: false,
+        declined: false
+    });
+    
+    // Function to toggle date picker visibility
+    const toggleDatePicker = (tab:string) => {
+        setShowDatePicker((prev:any) => ({
+        ...prev,
+        [tab]: !prev[tab]
+        }));
+    };                
+
+
+    // useEffect with mechanisms that filter disasters including search query and date filtering
     useEffect(() => {
-        const originalDisasters = {
-            Pending: allDisasters.filter((disaster: Disaster) => disaster.status === "Pending"),
-            Approved: allDisasters.filter((disaster: Disaster) => disaster.status === "Approved"),
-            Declined: allDisasters.filter((disaster: Disaster) => disaster.status === "Declined")
-        };
+    const originalDisasters = {
+        Pending: allDisasters.filter((disaster: Disaster) => disaster.status === "Pending"),
+        Approved: allDisasters.filter((disaster: Disaster) => disaster.status === "Approved"),
+        Declined: allDisasters.filter((disaster: Disaster) => disaster.status === "Declined")
+    };
 
-        // Apply search filtering if needed
-        setDisasters({
-            Pending: disasterSearch.pendingSearch 
-                ? fuzzySearch('Pending', disasterSearch.pendingSearch) 
-                : originalDisasters.Pending,
-            Approved: disasterSearch.approvedSearch 
-                ? fuzzySearch('Approved', disasterSearch.approvedSearch) 
-                : originalDisasters.Approved,
-            Declined: disasterSearch.declinedSearch 
-                ? fuzzySearch('Declined', disasterSearch.declinedSearch) 
-                : originalDisasters.Declined
+    // Filter function that combines text search and date range
+    const filterDisasters = (disasterType:string, searchText:string, dateRange:DateRange) => {
+        let filtered = originalDisasters[disasterType];
+        
+        // Apply date filter if dates are set
+        if (dateRange.startDate && dateRange.endDate) {
+        filtered = filtered.filter(disaster => {
+            const disasterDate = new Date(disaster.date);
+            return isWithinInterval(disasterDate, {
+            start: dateRange.startDate,
+            end: dateRange.endDate
+            });
         });
-    }, [disasterSearch, allDisasters]);
+        }
+        
+        // Apply text search if provided
+        if (searchText && searchText.trim() !== "") {
+        const options = {
+            keys: ['name', 'type', 'id'],
+            threshold: 0.7,
+            includeScore: true
+        };
+        
+        const fuse = new Fuse(filtered, options);
+        const result = fuse.search(searchText);
+        filtered = result.map(item => item.item);
+        }
+        
+        return filtered;
+    };
+
+    // Apply all filters
+    setDisasters({
+        Pending: filterDisasters('Pending', disasterSearch.pendingSearch, dateRanges.pendingRange),
+        Approved: filterDisasters('Approved', disasterSearch.approvedSearch, dateRanges.approvedRange),
+        Declined: filterDisasters('Declined', disasterSearch.declinedSearch, dateRanges.declinedRange)
+    });
+    }, [disasterSearch, dateRanges, allDisasters]);
+
+        //ability to reset filters
+    const resetFilters = (tab:string) => {
+            const defaultStartDate = new Date(new Date().setFullYear(new Date().getFullYear() - 10)); // Default to the last 10 years
+            const defaultEndDate = new Date(new Date().setFullYear(new Date().getFullYear() + 1));
+            
+            if (tab === 'pending' || tab === 'all') {
+              setDisasterSearch(prev => ({
+                ...prev,
+                pendingSearch: ""
+              }));
+              setDateRanges(prev => ({
+                ...prev,
+                pendingRange: {
+                    startDate:defaultStartDate, // Default to the last 10 years
+                    endDate: defaultEndDate,
+                    key: 'pendingSelection'
+                }
+              }));
+            }
+            
+            if (tab === 'approved' || tab === 'all') {
+              setDisasterSearch(prev => ({
+                ...prev,
+                approvedSearch: ""
+              }));
+              setDateRanges(prev => ({
+                ...prev,
+                approvedRange: {
+                    startDate: defaultStartDate, // Default to the last 10 years
+                    endDate: defaultEndDate,
+                    key: 'approvedSelection'
+                }
+              }));
+            }
+            
+            if (tab === 'declined' || tab === 'all') {
+              setDisasterSearch(prev => ({
+                ...prev,
+                declinedSearch: ""
+              }));
+              setDateRanges(prev => ({
+                ...prev,
+                declinedRange: {
+                    startDate:defaultStartDate, // Default to the last 10 years
+                    endDate: defaultEndDate,
+                    key: 'declinedSelection'
+                }
+              }));
+            }
+
+            //toggling the date picker for the tab
+            toggleDatePicker(tab);
+
+            //sending an action trigger notification
+            if(tab === 'all'){
+                toast.success("successfully reset sll the dates")
+            }
+            else{
+                toast.success(`successfully reset the ${tab} search`)
+            }
+          };
+    
     
 
     //changing the status of a disaster
@@ -124,27 +253,6 @@ function AdminClientPage({ allDisasters}: clientprops) {
         
     }
 
-    const fuzzySearch = (disasterType:string, searchText:string) => {
-        if (!searchText || searchText.trim() === "") {
-            return disasters[disasterType];
-        }
-        
-        const options = {
-            keys: [
-                'name',
-                'type',
-                'id'
-            ],
-            threshold: 0.7,
-            includeScore: true
-        };
-        
-        const fuse = new Fuse(disasters[disasterType], options);
-        const result = fuse.search(searchText);
-        
-        // Return the item from each result
-        return result.map(item => item.item);
-    }
 
     return (
         <Card className='rounded-none w-full'>
@@ -182,8 +290,53 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                             ...prev,
                                             pendingSearch: e.target.value
                                         }))}
-                                    />
+                                    />       
                             </div>
+                            <div className='w-2/3 m-2 flex flex-col items-center'>
+                                <Button 
+                                    variant="outline"
+                                    onClick={() => toggleDatePicker('pending')}
+                                    className="mb-2 w-full"
+                                >
+                                    {format(dateRanges.pendingRange.startDate, 'MMM dd, yyyy')} - {format(dateRanges.pendingRange.endDate, 'MMM dd, yyyy')}
+                                </Button>
+                                
+                                {showDatePicker.pending && (
+                                    <div className="border rounded-md shadow-md z-10 bg-white">
+                                    <DateRange
+                                        ranges={[dateRanges.pendingRange]}
+                                        onChange={(item) => setDateRanges(prev => ({
+                                        ...prev,
+                                        pendingRange: item.pendingSelection
+                                        }))}
+                                        moveRangeOnFirstSelection={false}
+                                        months={1}
+                                        direction="horizontal"
+                                    />
+                                    <div className="flex justify-end gap-2 p-2">
+                                        <Button 
+                                        size="sm" 
+                                        onClick={() => toggleDatePicker('pending')}
+                                        >
+                                        Apply
+                                        </Button>
+                                        <Button 
+                                        size="sm" 
+                                        onClick={() => resetFilters('pending')}
+                                        >
+                                        reset
+                                        </Button>
+                                        <Button 
+                                        size="sm" 
+                                        onClick={() => resetFilters('all')}
+                                        >
+                                        reset all
+                                        </Button>
+                                    </div>
+                                    </div>
+                                )}
+                                </div>
+
                             <Table className='w-full'>
                                 <TableCaption>Disasters pending decision.</TableCaption>
                                 <TableHeader>
@@ -245,6 +398,50 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                     }))}
                                 />
                             </div>
+                            <div className='w-2/3 m-2 flex flex-col items-center'>
+                                <Button 
+                                    variant="outline"
+                                    onClick={() => toggleDatePicker('approved')}
+                                    className="mb-2 w-full"
+                                >
+                                    {format(dateRanges.approvedRange.startDate, 'MMM dd, yyyy')} - {format(dateRanges.approvedRange.endDate, 'MMM dd, yyyy')}
+                                </Button>
+                                
+                                {showDatePicker.approved && (
+                                    <div className="border rounded-md shadow-md z-10 bg-white">
+                                    <DateRange
+                                        ranges={[dateRanges.approvedRange]}
+                                        onChange={(item) => setDateRanges(prev => ({
+                                        ...prev,
+                                        approvedRange: item.approvedSelection
+                                        }))}
+                                        moveRangeOnFirstSelection={false}
+                                        months={1}
+                                        direction="horizontal"
+                                    />
+                                        <div className="flex justify-end gap-2 p-2">
+                                            <Button 
+                                            size="sm" 
+                                            onClick={() => toggleDatePicker('approved')}
+                                            >
+                                            Apply
+                                            </Button>
+                                            <Button 
+                                            size="sm" 
+                                            onClick={() => resetFilters('approved')}
+                                            >
+                                            reset
+                                            </Button>
+                                            <Button 
+                                            size="sm" 
+                                            onClick={() => resetFilters('all')}
+                                            >
+                                            reset all
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                                </div>
                             <Table className='w-full'>
                                     <TableCaption>Approved disasters.</TableCaption>
                                     <TableHeader>
@@ -304,6 +501,50 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                     declinedSearch: e.target.value
                                 }))}
                             />
+                            </div>
+                            <div className='w-2/3 m-2 flex flex-col items-center'>
+                                <Button 
+                                    variant="outline"
+                                    onClick={() => toggleDatePicker('declined')}
+                                    className="mb-2 w-full"
+                                >
+                                    {format(dateRanges.declinedRange.startDate, 'MMM dd, yyyy')} - {format(dateRanges.declinedRange.endDate, 'MMM dd, yyyy')}
+                                </Button>
+                                
+                                {showDatePicker.declined && (
+                                    <div className="border rounded-md shadow-md z-10 bg-white">
+                                    <DateRange
+                                        ranges={[dateRanges.declinedRange]}
+                                        onChange={(item) => setDateRanges(prev => ({
+                                        ...prev,
+                                        declinedRange: item.declinedSelection
+                                        }))}
+                                        moveRangeOnFirstSelection={false}
+                                        months={1}
+                                        direction="horizontal"
+                                    />
+                                        <div className="flex justify-end gap-2 p-2">
+                                            <Button 
+                                            size="sm" 
+                                            onClick={() => toggleDatePicker('declined')}
+                                            >
+                                            Apply
+                                            </Button>
+                                            <Button 
+                                            size="sm" 
+                                            onClick={() => resetFilters('declined')}
+                                            >
+                                            reset
+                                            </Button>
+                                            <Button 
+                                            size="sm" 
+                                            onClick={() => resetFilters('all')}
+                                            >
+                                            reset all
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <Table className='w-full'>
                                     <TableCaption>Declined disasters.</TableCaption>
