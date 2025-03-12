@@ -10,7 +10,9 @@ async function getEvents() {
       throw new Error("Failed to fetch disasters");
     }
 
-    return await res.json();
+    const events= await res.json();
+
+     return events.filter((event: any) => event.status === "Approved")
   } catch (error) {
     console.error("Error fetching disasters:", error);
     return null;

@@ -110,7 +110,7 @@ function HomePageClient({events}:LinkedEventProps) {
 
     
     // requesting geo location services
-// Update your requestGeolocation function:
+    // Update your requestGeolocation function:
     const requestGeolocation = () => {
       if (navigator.geolocation) {
         // Request high accuracy specifically
@@ -268,7 +268,6 @@ function HomePageClient({events}:LinkedEventProps) {
         }
       };
 
-      useEffect
 
       useEffect(() => {
         if (!isGeolocationEnabled) {
