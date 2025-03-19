@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
     Table,
@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select"
-  
+ import EmergencyHotlines from "./emergencyHotlines" 
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -40,6 +40,7 @@ type DisastersSum = {
 //props from the parent, page.tsx
 type clientprops = {
     allDisasters: [],
+    emergencyHotlines:any[]
 }
 
 //Disaster information structure
@@ -53,7 +54,7 @@ type Disaster = {
     status: string
 }
 
-function AdminClientPage({ allDisasters}: clientprops) {
+function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
 
 
     // tracking all the disasters 
@@ -260,7 +261,7 @@ function AdminClientPage({ allDisasters}: clientprops) {
             position="top-right"
             theme='system'
             />
-            <CardContent className='w-full'>
+            <CardContent className='w-full '>
                 <CardHeader>
                     <CardTitle className='text-xl font-extrabold justify-start text-center'>
                         Admin's Panel
@@ -594,6 +595,9 @@ function AdminClientPage({ allDisasters}: clientprops) {
                             </Table>
                         </TabsContent>
                     </Tabs>
+                </div>
+                <div className='flex justify-evenly'>
+                    <EmergencyHotlines emergencyHotlines={emergencyHotlines}/>
                 </div>
             </CardContent>
         </Card>

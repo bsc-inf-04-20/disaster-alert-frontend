@@ -2,12 +2,6 @@ import React from 'react'
 import AdminClientPage from './adminClientPage';
 
 
-    //fetching available layers
-
-
-    //featching available hotlines
-
-
     //featching all disasters
     async function getAllEvents() {
         try {
@@ -50,14 +44,35 @@ import AdminClientPage from './adminClientPage';
       }
 
 
+        //featching emergency contacts
+        async function getEmergencyContants() {
+          try {
+            const res = await fetch("http://localhost:4000/emergency-contacts", {
+              cache: "no-store", // Prevents caching in SSR
+            });
+        
+            if (!res.ok) {
+              throw new Error("Failed to fetch emergency contacts");
+            }
+        
+            const contacts= await res.json();
+        
+             return contacts
+          } catch (error) {
+            console.error("Error fetching emergency contacts", error);
+            return null;
+          }
+        }  
+
+
 async function page() {
 
-    const [allEvents, approvedEvents] = await Promise.all([getAllEvents(), getApprovedEvents()]) 
+    const [allEvents, emergencyHotlines] = await Promise.all([getAllEvents(), getEmergencyContants()]) 
     
 
   return (
 
-    <AdminClientPage allDisasters={allEvents}/>
+    <AdminClientPage allDisasters={allEvents} emergencyHotlines={emergencyHotlines}/>
   )
 }
 
