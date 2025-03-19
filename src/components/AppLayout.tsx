@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Package, ClipboardList, BarChart2, Bell, Search, User, Banknote, LogOut, Menu, Map, Settings } from 'lucide-react';
+import { LayoutDashboard, Package, ClipboardList, BarChart2, Bell, Search, User, Banknote, LogOut, Menu, Map, Settings, Clock, FileClock } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from 'react';
@@ -20,6 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       { title: "Home", href: "/home", icon: Map },
       { title: "Education", href: "/education", icon: Search },
       { title: "Admin's panel", href: "/admin-page", icon: Settings },
+      { title: "History", href: "/history", icon:FileClock  },
       { title: "Logout", href: "/login", icon: LogOut }
     ]},
   ];
