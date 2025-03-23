@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import Base from "../app/custom_components/Base";
+import Base from "../custom_components/Base";
 
 /*Custom type for props passed to react components*/
 interface LayoutProps{
