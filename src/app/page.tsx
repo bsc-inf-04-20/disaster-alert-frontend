@@ -1,63 +1,41 @@
-import { ReactNode } from "react";
-import Base from "../app/custom_components/Base";
+import Image from "next/image";
+import Base from "./custom_components/Base";
 
-/*Custom type for props passed to react components*/
-interface LayoutProps{
-    children: ReactNode
+export default function Home() {
+  return (
+    <Base contentHeading={"stay alert, stay safe!"}>
+      <HomePageContent></HomePageContent>
+    </Base>
+  );
 }
 
-/*Main component*/
-export default function(){
-    return(
-        <Base contentHeading={"disasters happen, will you be ready!"}>
-            <PageContent></PageContent>
-        </Base>
-    );
-}
+function HomePageContent(){
+  return(
+    <div className="flex flex-col p-2 gap-4 text-sm">
 
+      {/* Image section */}
+      <div className="h-48 bg-white rounded-md">
+        <img src={undefined} alt="" />
+      </div>
 
-/*  The page content functions puts together nall the page content
-which then gets renderd in the dafault function. */
-function PageContent(){
-    return(
-        <div className="flex flex-col p-4 w-full gap-6 text-sm">
+      {/* What we offer section */}
+      <p className="p-2 text-base text-black opacity-90">
+        This is an app alerts, educate and help navigation during disaster
+        via a comprehensive alerting system, GPS and collaboration with
+        institutions.
+      </p>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-green-500 text-white p-2 rounded-md"> Live disaster tracking</div>
+        <div className="bg-green-500 text-white p-2 rounded-md"> Disaster preparedness modules</div>
+        <div className="bg-green-500 text-white p-2 rounded-md"> Disaster Alerting</div>
+        <div className="bg-green-500 text-white p-2 rounded-md"> Routes and safe zone identification</div>
+      </div>
 
-            {/* Images section */}
-            <div className="h-40 w-full bg-white"></div>
-
-            {/* Educational modules section */}
-            <div className="bg-green-500 p-2 rounded-md text-white">Your educational modules</div>
-            <div className="grid grid-cols-4 grid-rows-8 gap-4">
-                <ModuleCard children={"module"}></ModuleCard>
-                <ModuleCard children={"module"}></ModuleCard>
-                <ModuleCard children={"module"}></ModuleCard>
-                <ModuleCard children={"module"}></ModuleCard>
-            </div>
-
-            {/* Progress tracking section */}
-            <div className="flex flex-col p-4 bg-white gap-6 w-full text-white">
-                <div className="bg-green-500 p-2">Flood module</div>
-                <div className="bg-green-500 p-2">Cyclone module</div>
-                <div className="bg-green-500 p-2">Hurricane module</div>
-                <div className="bg-green-500 p-2">Wild fire module</div>
-            </div>
-        </div>
-    );
-}
-
-/*This component is a template for rendering module cards.*/
-function ModuleCard({children}: LayoutProps){
-    return(
-    <div className="grid grid-cols-2 grid-rows-4 bg-white rounded-md row-span-4 col-span-2 gap-2 p-2">
-        <p className="row-start-1 row-end-3 col-span-2">
-            {children}
-        </p>
-        <div className="p-2 row-start-4 col-start-1 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white">
-            View
-        </div>
-        <div className="p-2 row-start-4 col-start-2 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white">
-            Download
-        </div>
+      {/* Last home content section*/}
+      <div className="flex flex-row w-full gap-4">
+        <div className="h-36 w-1/2 bg-white rounded-md"></div>
+        <div className="h-36 w-1/2 bg-white rounded-md"></div>
+      </div>
     </div>
-    );
+  );
 }
