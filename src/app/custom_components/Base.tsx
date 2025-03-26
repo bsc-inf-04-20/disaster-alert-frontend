@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSideBar";
 
+
 interface LayoutProps{
     children: ReactNode,
     contentHeading: ReactNode

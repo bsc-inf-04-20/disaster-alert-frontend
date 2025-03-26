@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
-import Base from "../custom_components/Base";
+import Base from "../../app/custom_components/Base";
+import "../../app/globals.css"
 
 /*Custom type for props passed to react components*/
 interface LayoutProps{
@@ -15,6 +16,17 @@ export default function(){
     );
 }
 
+/*interface ModuleProgress {
+    moduleId: string;
+    documentsViewed: string[]; // array of document IDs the user has viewed
+    completed: boolean;
+    lastAccessed?: Date;
+  }
+  
+  interface UserProgress {
+    userId: string;
+    modules: ModuleProgress[];
+  }*/
 
 /*  The page content functions puts together nall the page content
 which then gets renderd in the dafault function. */
@@ -47,6 +59,9 @@ function PageContent(){
 
 /*This component is a template for rendering module cards.*/
 function ModuleCard({children}: LayoutProps){
+
+
+    
     return(
     <div className="grid grid-cols-2 grid-rows-4 bg-white rounded-md row-span-4 col-span-2 gap-2 p-2">
         <p className="row-start-1 row-end-3 col-span-2">
