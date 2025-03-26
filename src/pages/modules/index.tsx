@@ -35,10 +35,12 @@ function PageContent(){
         <div className="flex flex-col p-4 w-full gap-6 text-sm">
 
             {/* Images section */}
-            <div className="h-40 w-full bg-white"></div>
+            <div className="h-40 w-full bg-white">
+                <img src="images\istockphoto-1146891343-1024x1024.jpg" alt="educational module" className="h-full w-full object-cover rounded-md"/>
+            </div>
 
             {/* Educational modules section */}
-            <div className="bg-green-500 p-2 rounded-md text-white">Your educational modules</div>
+            <div className="bg-green-500 p-2 rounded-md text-white flex items-center justify-center">Your educational modules</div>
             <div className="grid grid-cols-4 grid-rows-8 gap-4">
                 <ModuleCard children={"module"}></ModuleCard>
                 <ModuleCard children={"module"}></ModuleCard>
