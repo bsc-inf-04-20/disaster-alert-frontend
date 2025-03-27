@@ -10,7 +10,11 @@ interface LayoutProps{
 /*Main component*/
 export default function(){
     return(
-        <Base contentHeading={"disasters happen, will you be ready!"}>
+        <Base contentHeading={
+            <h1 className="text-3xl font-bold text-center text-green-600 uppercase">
+                    "Disasters Happen, Will You Be Ready?!"
+            </h1>
+        }>
             <PageContent></PageContent>
         </Base>
     );

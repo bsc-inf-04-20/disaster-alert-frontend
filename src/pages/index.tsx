@@ -1,6 +1,7 @@
 import Image from "next/image";
-import Base from "./custom_components/Base";
+import Base from "../app/custom_components/Base";
 import Link from "next/link";
+import "../app/globals.css"
 
 export default function Home() {
   return (
