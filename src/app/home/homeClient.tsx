@@ -17,10 +17,13 @@ import { toast, Toaster } from 'sonner';
 import MapUpdater from './mapUpdater';
 import polyline from '@mapbox/polyline';
 import NavigationInstructions from './navInstructions'
+import {Commet, TrophySpin} from 'react-loading-indicators';
+import { CreateMarker } from '../utils/ImageProgressing';
 
 
 type LinkedEventProps = {
   events:Event[]
+  disasters:any
 }
 
 //description of an event 
@@ -102,11 +105,21 @@ function HomePageClient({events}:LinkedEventProps) {
 
 
     // keeping track of all the layers
-    const [layers, setLayers] = useState<Layer[]>([])
+    const [layers, setLayers] = useState({})
 
 
     // keeping track of all the layers selected to be rendered on to the map
-    const [filteredLayers, setFilteredLayers]= useState<Layer[]>([])
+    const [filteredLayers, setFilteredLayers]= useState<string[]>([])
+
+    // keeping track of the data availability to update loading state
+    const [loadingState, setLoadingState] = useState<boolean>(true)
+
+    useEffect(()=>{
+      if(layers){
+        setLoadingState(false)
+      }
+    },
+      [events])
 
     
     // requesting geo location services
@@ -140,42 +153,27 @@ function HomePageClient({events}:LinkedEventProps) {
     };
 
     //toggle layer adds or removes a layer to the map when a layer button is clicked    
-    const togglelayer = (targetLayer:Layer) =>{
+    const togglelayer = (targetLayer:any) =>{
 
       if(filteredLayers && filteredLayers.includes(targetLayer)){
-        const filteredLyrs:Layer[] = filteredLayers.filter((layer:Layer)=>layer.name!=targetLayer.name)
+        const filteredLyrs:any[] = filteredLayers.filter((layer:any)=>layer!=targetLayer)
         setFilteredLayers(filteredLyrs)
       }
       else if(!filteredLayers.includes(targetLayer))
-       setFilteredLayers([...filteredLayers, targetLayer])
+       setFilteredLayers(prev =>[...prev, targetLayer])
     }
 
     //getting the layers information, shelters and hospitals and placing them into the layers state
     useEffect(() => {
       async function loadShapefile() {
           try {
-              const healthResponse = await fetch("/hotosm_mwi_health_facilities_points_shp/hotosm_mwi_health_facilities_points_shp.shp");
-              const healthArrayBuffer = await healthResponse.arrayBuffer();
-              const healthGeojson = await shapefile.read(healthArrayBuffer);
-  
-              const schoolsResponse = await fetch("/hotosm_mwi_education_facilities_points_shp/hotosm_mwi_education_facilities_points_shp.shp");
-              const schoolsArrayBuffer = await schoolsResponse.arrayBuffer();
-              const schoolGeojson = await shapefile.read(schoolsArrayBuffer);
-  
-              // Only update state if layers are not already present
-              setLayers(prevLayers => {
-                  const newLayers = [...prevLayers];
-                  
-                  if (!prevLayers.some(layer => layer.name === "health_facility")) {
-                      newLayers.push({ name: "health_facility", data: healthGeojson, mapIcon: healthIcon, icon: "medical.png" });
-                  }
-                  if (!prevLayers.some(layer => layer.name === "shelter")) {
-                      newLayers.push({ name: "shelter", data: schoolGeojson, mapIcon: shieldIcon, icon: "shield.png" });
-                  }
-  
-                  return newLayers;
-              });
-  
+              const layers = await fetch("http://localhost:3000/features/all");
+              const layersData = await layers.json();
+              let array =Object.keys(layersData)
+             console.log(array[0])
+              setLayers(layersData);
+              setFilteredLayers(Object.keys(layers))
+
           } catch (error) {
               console.error("Error loading shapefile:", error);
           }
@@ -186,7 +184,8 @@ function HomePageClient({events}:LinkedEventProps) {
 
       //initially grabbing all available layers into the filters
       useEffect(() => {
-        setFilteredLayers((prev) => (prev.length === 0 ? layers : prev));
+        console.log(`the layers are:${layers}`)
+        setFilteredLayers((prev) => (prev === null ? Object.keys(layers) : prev));
       }, [layers]);
 
 
@@ -281,6 +280,14 @@ function HomePageClient({events}:LinkedEventProps) {
         }
       }, [isGeolocationEnabled, geoCoords, isGeolocationAvailable]);
 
+  if(loadingState) {
+    return (
+      <div className="flex items-center justify-center w-full h-screen">
+        <Commet color="#32cd32" size="large" text="" textColor="" />
+      </div>
+    );
+  }
+
   return (
    <div>
       <Toaster
@@ -337,19 +344,23 @@ function HomePageClient({events}:LinkedEventProps) {
                             {/* {waypoints.map((pos, idx) => (
                               <Marker key={idx} position={pos} />
                             ))} */}
-                          {filteredLayers &&
-                              filteredLayers.map((layer: Layer) =>
-                                layer.data.features.map((feature: any, index: number) => {
-                                  const coords = feature.geometry.coordinates;
+                          {filteredLayers.length > 0 &&
+                              filteredLayers.map((layer) =>
+                                layers[layer].data.map((feature: any, index: number) => {
+                                  console.log(`is filetredLayers as array? : ${Array.isArray(filteredLayers)}, it is a ${typeof filteredLayers} and here is it ${JSON.stringify(filteredLayers)}`)
+                                  const coords = feature.parsedGeom;
+                                  console.log(`the coordintes are x: ${Number.parseInt (coords.y)} y: ${coords.x}`)
+                                  console.log(`the icon url is : ${layers[layer].featureIconURL}`)
+                                  console.log(CreateMarker("https://api.iconify.design/material-symbols-light:school-outline.svg?height=32&color=black"));
                                   return (
-                                    <Marker key={index} position={[coords[1], coords[0]]} icon={layer.mapIcon}>
-                                      <Popup>
-                                        <strong>{layer.name}</strong>
+                                    <Marker key={index} position={[Number.parseFloat(coords.x), Number.parseFloat(coords.y)]} icon={CreateMarker(layers[layer].featureIconURL)}>
+                                      {/* <Popup>
+                                        <strong>{layer}</strong>
                                         <br />
                                         Name: {feature.properties.name || "Unknown"}
                                         <br />
                                         Type: {feature.properties.amenity || "Unknown"}
-                                      </Popup>
+                                      </Popup> */}
                                     </Marker>
                                   );
                                 })
@@ -374,14 +385,14 @@ function HomePageClient({events}:LinkedEventProps) {
                         {/* Overlay filter options */}
                         <div className="flex absolute top-4 left-20 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-80 p-2 rounded">
                         {
-                            layers.map((layer:Layer)=>{
+                            Object.keys(layers).map((layer:any, index:number)=>{
                               return (
                                 <Button 
-                                key={layer.name}
+                                key={layer}
                                 onClick={()=>togglelayer(layer)}
                                 className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
-                                    <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
-                                    <span>{layer.name}</span>
+                                    <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
+                                    <span>{layer.split("_")[1]}</span>
                                 </Button>
                               )
                             })
@@ -398,15 +409,15 @@ function HomePageClient({events}:LinkedEventProps) {
                 </CardTitle>
               </CardHeader>  
                 <div className='flex gap-2 justify-items-start flex-wrap pl-6 pr-6'>
-                  {
-                    layers.map((layer:Layer)=>{
+                {
+                    Object.keys(layers).map((layer:any, index:number)=>{
                       return (
                         <Button 
-                        key={layer.name}
+                        key={layer}
                         onClick={()=>togglelayer(layer)}
                         className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
-                            <img src={layer.icon} alt={layer.name} className="w-6 h-6" />
-                            <span>{layer.name}</span>
+                            <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
+                            <span>{layer.split("_")[1]}</span>
                         </Button>
                       )
                     })

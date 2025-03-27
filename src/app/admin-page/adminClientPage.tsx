@@ -29,6 +29,8 @@ import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { DateRange } from 'react-date-range';
 import { format, isWithinInterval } from 'date-fns';
+import { Commet } from 'react-loading-indicators';
+import SpatialLayerPicker from './layersComponent';
 
 // all disasters
 type DisastersSum = {
@@ -66,6 +68,16 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
         Approved:[],
         Declined:[]
     })
+
+    //tracking dataloading state
+   const [loadingState, setLoadingState] = useState<boolean>(true)
+
+    useEffect(()=>{
+        if(allDisasters && emergencyHotlines){
+        setLoadingState(false)
+        }
+    },
+        [allDisasters, emergencyHotlines])
 
 
     //tracking the search for the different disasters
@@ -252,6 +264,14 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
         }))
 
         
+    }
+
+    if(loadingState) {
+    return (
+        <div className="flex items-center justify-center w-full h-screen">
+        <Commet color="#32cd32" size="large" text="" textColor="" />
+        </div>
+    );
     }
 
 
@@ -596,8 +616,9 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                         </TabsContent>
                     </Tabs>
                 </div>
-                <div className='flex justify-evenly'>
+                <div className=' flex flex-col md:flex-row md:justify-evenly items-center md:items-start gap-2'>
                     <EmergencyHotlines emergencyHotlines={emergencyHotlines}/>
+                    <SpatialLayerPicker/>
                 </div>
             </CardContent>
         </Card>

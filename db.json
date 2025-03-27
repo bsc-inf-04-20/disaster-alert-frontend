@@ -1,7 +1,63 @@
 {
-  "disasters":   "emergency-contacts": [
+  "disasters": [
     {
-      "id": 1,
+      "id": "1",
+      "type": "Storm",
+      "name": "Chido",
+      "date": "2025-07-05T20:30:00Z",
+      "intensity": 70,
+      "impact_chance": 45,
+      "status": "Pending"
+    },
+    {
+      "id": "2",
+      "type": "Cyclone",
+      "name": "Anna",
+      "date": "2025-08-10T18:00:00Z",
+      "intensity": 60,
+      "impact_chance": 50,
+      "status": "Approved"
+    },
+    {
+      "id": "3",
+      "type": "Cyclone",
+      "name": "Freddy",
+      "date": "2023-09-15T14:45:00Z",
+      "intensity": 80,
+      "impact_chance": 65,
+      "status": "Pending"
+    },
+    {
+      "id": "4",
+      "type": "Flood",
+      "name": "Nsanje floods",
+      "date": "2025-09-15T14:45:00Z",
+      "intensity": 50,
+      "impact_chance": 65,
+      "status": "Approved"
+    },
+    {
+      "id": "5",
+      "type": "Cyclone",
+      "name": "Gombe",
+      "date": "2025-09-15T14:45:00Z",
+      "intensity": 30,
+      "impact_chance": 75,
+      "status": "Approved"
+    },
+    {
+      "id": "6",
+      "type": "Floods",
+      "name": "Nsanje floods",
+      "date": "2024-09-15T14:45:00Z",
+      "intensity": 80,
+      "impact_chance": 65,
+      "status": "Approved"
+    }
+  ],
+  "emergency-contacts": [
+    {
+      "id": "1",
       "location": "Luchenza",
       "phones": {
         "numbers": [
@@ -11,7 +67,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 2,
+      "id": "2",
       "location": "Thyolo",
       "phones": {
         "numbers": [
@@ -21,7 +77,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 3,
+      "id": "3",
       "location": "Phalombe",
       "phones": {
         "numbers": [
@@ -31,7 +87,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 4,
+      "id": "4",
       "location": "Mulanje",
       "phones": {
         "numbers": [
@@ -41,7 +97,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 5,
+      "id": "5",
       "location": "Chiradzulu",
       "phones": {
         "numbers": [
@@ -51,7 +107,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 6,
+      "id": "6",
       "location": "Chikwawa",
       "phones": {
         "numbers": [
@@ -61,7 +117,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 7,
+      "id": "7",
       "location": "Nsanje",
       "phones": {
         "numbers": [
@@ -71,7 +127,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 8,
+      "id": "8",
       "location": "Nchalo",
       "phones": {
         "numbers": [
@@ -81,7 +137,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 9,
+      "id": "9",
       "location": "Bangula",
       "phones": {
         "numbers": [
@@ -91,7 +147,7 @@
       "region": "SOUTH EAST REGION"
     },
     {
-      "id": 10,
+      "id": "10",
       "location": "Kasungu",
       "phones": {
         "numbers": [
@@ -101,7 +157,7 @@
       "region": "CENTRAL EAST REGION POLICE"
     },
     {
-      "id": 11,
+      "id": "11",
       "location": "Ntchisi",
       "phones": {
         "numbers": [
@@ -111,7 +167,7 @@
       "region": "CENTRAL EAST REGION POLICE"
     },
     {
-      "id": 12,
+      "id": "12",
       "location": "Salima",
       "phones": {
         "numbers": [
@@ -121,7 +177,7 @@
       "region": "CENTRAL EAST REGION POLICE"
     },
     {
-      "id": 13,
+      "id": "13",
       "location": "Dowa",
       "phones": {
         "numbers": [
@@ -131,7 +187,7 @@
       "region": "CENTRAL EAST REGION POLICE"
     },
     {
-      "id": 14,
+      "id": "14",
       "location": "Mponela",
       "phones": {
         "numbers": [
@@ -141,7 +197,7 @@
       "region": "CENTRAL EAST REGION POLICE"
     },
     {
-      "id": 15,
+      "id": "15",
       "location": "Nkhunga",
       "phones": {
         "numbers": [
@@ -151,7 +207,7 @@
       "region": "CENTRAL EAST REGION POLICE"
     },
     {
-      "id": 16,
+      "id": "16",
       "location": "Nkhotakota",
       "phones": {
         "numbers": [
@@ -161,7 +217,7 @@
       "region": "CENTRAL EAST REGION POLICE"
     },
     {
-      "id": 17,
+      "id": "17",
       "location": "Headquarters",
       "phones": {
         "numbers": [
@@ -171,7 +227,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 18,
+      "id": "18",
       "location": "Blantyre",
       "phones": {
         "numbers": [
@@ -181,7 +237,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 19,
+      "id": "19",
       "location": "Limbe",
       "phones": {
         "numbers": [
@@ -191,7 +247,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 20,
+      "id": "20",
       "location": "Chileka",
       "phones": {
         "numbers": [
@@ -201,7 +257,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 21,
+      "id": "21",
       "location": "Ndirande",
       "phones": {
         "numbers": [
@@ -211,7 +267,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 22,
+      "id": "22",
       "location": "Mwanza",
       "phones": {
         "numbers": [
@@ -221,7 +277,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 23,
+      "id": "23",
       "location": "Neno",
       "phones": {
         "numbers": [
@@ -231,7 +287,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 24,
+      "id": "24",
       "location": "Chilomoni",
       "phones": {
         "numbers": [
@@ -241,7 +297,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 25,
+      "id": "25",
       "location": "Bvumbwe",
       "phones": {
         "numbers": [
@@ -251,7 +307,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 26,
+      "id": "26",
       "location": "Bangwe",
       "phones": {
         "numbers": [
@@ -261,7 +317,7 @@
       "region": "SOUTH WEST REGION POLICE"
     },
     {
-      "id": 27,
+      "id": "27",
       "location": "Headquarters",
       "phones": {
         "numbers": [
@@ -271,7 +327,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 28,
+      "id": "28",
       "location": "Mzuzu",
       "phones": {
         "numbers": [
@@ -281,7 +337,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 29,
+      "id": "29",
       "location": "Chitipa",
       "phones": {
         "numbers": [
@@ -291,7 +347,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 30,
+      "id": "30",
       "location": "Karonga",
       "phones": {
         "numbers": [
@@ -301,7 +357,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 31,
+      "id": "31",
       "location": "Mzimba",
       "phones": {
         "numbers": [
@@ -311,7 +367,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 32,
+      "id": "32",
       "location": "Nkhatabay",
       "phones": {
         "numbers": [
@@ -321,7 +377,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 33,
+      "id": "33",
       "location": "Likoma",
       "phones": {
         "numbers": [
@@ -331,7 +387,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 34,
+      "id": "34",
       "location": "Rumphi",
       "phones": {
         "numbers": [
@@ -341,7 +397,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 35,
+      "id": "35",
       "location": "Chintheche",
       "phones": {
         "numbers": [
@@ -351,7 +407,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 36,
+      "id": "36",
       "location": "Champhira",
       "phones": {
         "numbers": [
@@ -361,7 +417,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 37,
+      "id": "37",
       "location": "Kafukule",
       "phones": {
         "numbers": [
@@ -371,7 +427,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 38,
+      "id": "38",
       "location": "Chikangawa",
       "phones": {
         "numbers": [
@@ -381,7 +437,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 39,
+      "id": "39",
       "location": "Kapolo",
       "phones": {
         "numbers": [
@@ -391,7 +447,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 40,
+      "id": "40",
       "location": "Songwe",
       "phones": {
         "numbers": [
@@ -401,7 +457,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 41,
+      "id": "41",
       "location": "Chitsenga",
       "phones": {
         "numbers": [
@@ -411,7 +467,7 @@
       "region": "NORTHERN REGION POLICE"
     },
     {
-      "id": 42,
+      "id": "42",
       "location": "Headquarters",
       "phones": {
         "numbers": [
@@ -421,7 +477,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 43,
+      "id": "43",
       "location": "Zomba",
       "phones": {
         "numbers": [
@@ -431,7 +487,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 44,
+      "id": "44",
       "location": "Mangochi",
       "phones": {
         "numbers": [
@@ -441,7 +497,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 45,
+      "id": "45",
       "location": "Balaka",
       "phones": {
         "numbers": [
@@ -451,7 +507,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 46,
+      "id": "46",
       "location": "Machinga",
       "phones": {
         "numbers": [
@@ -461,7 +517,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 47,
+      "id": "47",
       "location": "Monkeybay",
       "phones": {
         "numbers": [
@@ -471,7 +527,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 48,
+      "id": "48",
       "location": "Liwonde",
       "phones": {
         "numbers": [
@@ -481,7 +537,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 49,
+      "id": "49",
       "location": "Namadzi",
       "phones": {
         "numbers": [
@@ -491,7 +547,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 50,
+      "id": "50",
       "location": "Nayuchi",
       "phones": {
         "numbers": [
@@ -501,7 +557,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 51,
+      "id": "51",
       "location": "Kachulu",
       "phones": {
         "numbers": [
@@ -511,7 +567,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 52,
+      "id": "52",
       "location": "Namwera",
       "phones": {
         "numbers": [
@@ -521,7 +577,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 53,
+      "id": "53",
       "location": "Makanjira",
       "phones": {
         "numbers": [
@@ -531,7 +587,7 @@
       "region": "EASTERN REGION POLICE"
     },
     {
-      "id": 54,
+      "id": "54",
       "location": "Headquarters",
       "phones": {
         "numbers": [
@@ -541,7 +597,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 55,
+      "id": "55",
       "location": "Lilongwe",
       "phones": {
         "numbers": [
@@ -551,7 +607,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 56,
+      "id": "56",
       "location": "Kasungu",
       "phones": {
         "numbers": [
@@ -561,7 +617,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 57,
+      "id": "57",
       "location": "Ntcheu",
       "phones": {
         "numbers": [
@@ -571,7 +627,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 58,
+      "id": "58",
       "location": "Mchinji",
       "phones": {
         "numbers": [
@@ -581,7 +637,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 59,
+      "id": "59",
       "location": "Dedza",
       "phones": {
         "numbers": [
@@ -591,7 +647,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 60,
+      "id": "60",
       "location": "Nathenje",
       "phones": {
         "numbers": [
@@ -601,7 +657,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 61,
+      "id": "61",
       "location": "Salima",
       "phones": {
         "numbers": [
@@ -611,7 +667,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 62,
+      "id": "62",
       "location": "Kanengo",
       "phones": {
         "numbers": [
@@ -621,7 +677,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 63,
+      "id": "63",
       "location": "Kawale",
       "phones": {
         "numbers": [
@@ -631,7 +687,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 64,
+      "id": "64",
       "location": "Lingadzi",
       "phones": {
         "numbers": [
@@ -641,7 +697,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 65,
+      "id": "65",
       "location": "Namitete",
       "phones": {
         "numbers": [
@@ -651,7 +707,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 66,
+      "id": "66",
       "location": "Linthipe",
       "phones": {
         "numbers": [
@@ -661,7 +717,7 @@
       "region": "CENTRAL WEST REGION POLICE"
     },
     {
-      "id": 67,
+      "id": "67",
       "location": "Lumbadzi",
       "phones": {
         "numbers": [

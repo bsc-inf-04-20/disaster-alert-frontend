@@ -19,10 +19,30 @@ async function getEvents() {
   }
 }
 
-const HomePageServer = async () => {
-  const events = await getEvents();
+async function getDisasters() {
+  try {
+    const res = await fetch("http://localhost:3000/disaster", {
+      cache: "no-store", // Prevents caching in SSR
+    });
 
-  return <HomePageClient events={events} />;
+    if (!res.ok) {
+      throw new Error("Failed to fetch disasters");
+    }
+
+    const disasters= await res.json();
+
+     return disasters
+  } catch (error) {
+    console.error("Error fetching disasters:", error);
+    return null;
+  }
+}
+
+const HomePageServer = async () => {
+
+  const [events, disasters] = await Promise.all([getEvents(), getDisasters()])
+
+  return <HomePageClient events={events} disasters={disasters} />;
 };
 
 export default HomePageServer;
