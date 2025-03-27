@@ -4,7 +4,12 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <Base contentHeading={"stay alert, stay safe!"}>
+    <Base contentHeading={
+      <h1 className="text-3xl font-bold text-center text-green-600 uppercase">
+        "stay alert, stay safe!"
+      </h1>
+
+      }>
       <HomePageContent></HomePageContent>
     </Base>
   );
@@ -24,15 +29,15 @@ function HomePageContent(){
 
       {/* What we offer section */}
       <p className="p-2 text-base text-black opacity-90">
-        This is an app alerts, educate and help navigation during disaster
-        via a comprehensive alerting system, GPS and collaboration with
+        This is an app that alerts, educates and help navigation during disaster
+        via a comprehensive alerting system, GPS and collaboration with disaster response
         institutions.
       </p>
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-green-500 text-white p-2 rounded-md"> Live disaster tracking</div>
         <Link href="/modules">
            <div className="bg-green-500 text-white p-2 rounded-md cursor-pointer hover:bg-green-600 transition">
-                Disaster preparedness modules
+                Disaster Preparedness Modules
           </div>
         </Link>
         <div className="bg-green-500 text-white p-2 rounded-md"> Disaster Alerting</div>

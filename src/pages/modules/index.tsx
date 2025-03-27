@@ -39,6 +39,10 @@ function PageContent(){
                 <img src="images\istockphoto-1146891343-1024x1024.jpg" alt="educational module" className="h-full w-full object-cover rounded-md"/>
             </div>
 
+        
+
+
+
             {/* Educational modules section */}
             <div className="bg-green-500 p-2 rounded-md text-white flex items-center justify-center">Your educational modules</div>
             <div className="grid grid-cols-4 grid-rows-8 gap-4">
