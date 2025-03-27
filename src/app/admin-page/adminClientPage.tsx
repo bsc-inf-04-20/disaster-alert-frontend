@@ -97,7 +97,7 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                     }
                     });
 
-    //ariables to control the visibility of date pickers
+    //variables to control the visibility of date pickers
     const [showDatePicker, setShowDatePicker] = useState({
         pending: false,
         approved: false,
