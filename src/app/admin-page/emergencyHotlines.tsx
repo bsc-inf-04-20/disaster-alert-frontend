@@ -251,38 +251,40 @@ const EmergencyHotlines = ({ emergencyHotlines }: EmergencyHotlinesProps) => {
                             </div>
                             
                             {selectedLocation && selectedRegion && (
-                                <div className="mt-4">
+                                <div className="mt-4 flex flex-col items-center gap-2">
                                     <span className="text-center block mb-2">
                                     </span>
-                                    <ul className="space-y-2">
+                                    <ol className="list-decimal pl-10 w-full max-w-md"> {/* Add padding-left to make room for markers */}
                                         {contactsToRender.length > 0 && contactsToRender[0].phones.numbers.map((phoneNumber: string, index: number) => (
-                                            <div 
-                                                key={index} 
-                                                className="flex justify-center items-center gap-6 border-0 border-b-2 border-gray-300 p-1"
+                                            <li
+                                                key={index}
+                                                className="border-0 border-b-2 border-gray-300 p-1 mb-2" /* Remove flex from here */
                                             >
-                                                <span className="text-green-600 font-extrabold">{phoneNumber}</span>
-                                                
-                                                {/* Delete Button */}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="bg-red-500 hover:bg-red-900 p-2"
-                                                    onClick={() => handleDeleteClick(index)}
-                                                >
-                                                    <X size={16} color="white" />
-                                                </Button>
-                                                
-                                                {/* Edit Button */}
-                                                <Button
-                                                    size="sm"
-                                                    className="p-2 bg-green-600"
-                                                    onClick={() => handleEditClick(phoneNumber, index)}
-                                                >
-                                                    <Settings2 size={16} />
-                                                </Button>
-                                            </div>
+                                                <div className="flex justify-center items-center gap-6"> {/* Move flex to an inner div */}
+                                                    <span className="text-green-600 font-extrabold">{phoneNumber}</span>
+                                                    
+                                                    {/* Delete Button */}
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="bg-red-500 hover:bg-red-900 p-2"
+                                                        onClick={() => handleDeleteClick(index)}
+                                                    >
+                                                        <X size={16} color="white" />
+                                                    </Button>
+                                                    
+                                                    {/* Edit Button */}
+                                                    <Button
+                                                        size="sm"
+                                                        className="p-2 bg-green-600"
+                                                        onClick={() => handleEditClick(phoneNumber, index)}
+                                                    >
+                                                        <Settings2 size={16} />
+                                                    </Button>
+                                                </div>
+                                            </li>
                                         ))}
-                                    </ul>
+                                    </ol>
                                     
                                     {/* Add Button */}
                                     <Button
