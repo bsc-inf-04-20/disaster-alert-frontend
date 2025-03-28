@@ -247,8 +247,8 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
 
         setDisasters((prevDisasters:DisastersSum)=>({
             ...prevDisasters,
-            [fromStatus]: prevDisasters[fromStatus].filter((disaster:Disaster)=>disaster.id!=id),
-            [toStatus]: [...prevDisasters[toStatus], {...disaster, status:toStatus}]
+            [fromStatus as keyof DisastersSum]: prevDisasters[fromStatus as keyof DisastersSum].filter((disaster: Disaster) => disaster.id != id),
+            [toStatus as keyof DisastersSum]: [...prevDisasters[toStatus as keyof DisastersSum], {...disaster, status:toStatus}]
         }))
 
         
@@ -262,10 +262,13 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
             theme='system'
             />
             <CardContent className='w-full '>
-                <CardHeader>
+                <CardHeader className='w-full bg-green-400'>
                     <CardTitle className='text-xl font-extrabold justify-start text-center'>
                         Admin's Panel
                     </CardTitle>
+                    <CardDescription className='text-xl text-black text-center'>
+                        Manager Disaster Alert
+                    </CardDescription>
                 </CardHeader>
                 <div className='flex flex-col items-center'>
                     <Tabs defaultValue="pending-disasters" className='w-full'>
@@ -306,7 +309,7 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                     <div className="border rounded-md shadow-md z-10 bg-white">
                                     <DateRange
                                         ranges={[dateRanges.pendingRange]}
-                                        onChange={(item) => setDateRanges(prev => ({
+                                        onChange={(item) => setDateRanges((prev:any) => ({
                                         ...prev,
                                         pendingRange: item.pendingSelection
                                         }))}
@@ -412,7 +415,7 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                     <div className="border rounded-md shadow-md z-10 bg-white">
                                     <DateRange
                                         ranges={[dateRanges.approvedRange]}
-                                        onChange={(item) => setDateRanges(prev => ({
+                                        onChange={(item) => setDateRanges((prev:any) => ({
                                         ...prev,
                                         approvedRange: item.approvedSelection
                                         }))}
