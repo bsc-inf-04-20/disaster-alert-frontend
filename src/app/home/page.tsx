@@ -21,7 +21,7 @@ async function getEvents() {
 
 async function getDisasters() {
   try {
-    const res = await fetch("http://localhost:3000/disaster", {
+    const res = await fetch("http://localhost:3000/disasters", {
       cache: "no-store", // Prevents caching in SSR
     });
 

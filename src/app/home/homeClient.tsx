@@ -8,7 +8,8 @@ import {Hospital, Shield, FireExtinguisher, ShieldIcon, Download} from 'lucide-r
 import "leaflet/dist/leaflet.css";
 import * as shapefile from "shapefile";
 import { GeoJSON } from "react-leaflet";
-import L, { icon, Icon} from "leaflet";
+import L, { icon, Icon } from "leaflet";
+import { Polygon } from "react-leaflet";
 import HorizontalProgressBar from './horizontalGraph';
 import LinkedEvents from './linkedEvents';
 import { useGeolocated } from 'react-geolocated';
@@ -44,7 +45,7 @@ type Layer = {
   icon : string 
 };
 
-function HomePageClient({events}:LinkedEventProps) {
+function HomePageClient({events, disasters}:LinkedEventProps) {
 
 
 
@@ -101,7 +102,7 @@ function HomePageClient({events}:LinkedEventProps) {
 
 
     //keeping track of which disaster is currently being displayed in detail
-    const [currentDisaster, setCurrentDisaster] = useState<Event>(events[0])
+    const [currentDisaster, setCurrentDisaster] = useState(Object.keys(disasters)[0])
 
 
     // keeping track of all the layers
@@ -209,6 +210,9 @@ function HomePageClient({events}:LinkedEventProps) {
 
     const [navDistance, setNavDistance] = useState<number| null>()
 
+    //disaster parameters
+    const [disasterPolyCoords, setDisasterPolyCoords] = useState<any[]>([])
+
 
 
       // Handle map clicks to set waypoints
@@ -266,6 +270,24 @@ function HomePageClient({events}:LinkedEventProps) {
           toast.error(`route could not be generated: ${error}`)
         }
       };
+
+    // Fix the useEffect
+    useEffect(() => {
+      if (
+        disasters[currentDisaster]?.data[0]?.parsedGeom?.points &&
+        Array.isArray(disasters[currentDisaster].data[0].parsedGeom.points)
+      ) {
+        const points = disasters[currentDisaster].data[0].parsedGeom.points;
+        const formattedCoords = points.map(geom => [
+          Number(geom.x), // Latitude
+          Number(geom.y)  // Longitude
+        ]);
+        console.log(formattedCoords)
+        setDisasterPolyCoords(formattedCoords);
+      } else {
+        setDisasterPolyCoords([]);
+      }
+    }, [currentDisaster, disasters]);
 
 
       useEffect(() => {
@@ -379,7 +401,8 @@ function HomePageClient({events}:LinkedEventProps) {
                             }
                           {route.length > 0 && <Polyline positions={route} color="blue" />}
                           {route.length > 0 && <Marker position={waypoints[1]} icon={destinationIcon}></Marker>}
-
+                          <Polygon positions={disasterPolyCoords} pathOptions={{ color: "blue" }} />
+                          <Polygon positions={disasterPolyCoords} color="blue" />
                         </MapContainer>
 
                         {/* Overlay filter options */}
@@ -405,7 +428,7 @@ function HomePageClient({events}:LinkedEventProps) {
             <Card className='md:w-[50%] bg-gray-100 p-2'>
               <CardHeader >
                 <CardTitle className='flex justify-center bg-orange-200 rounded-sm p-2'>
-                  {currentDisaster?.name}
+                  {disasters[currentDisaster]?.metadata.disasterName}
                 </CardTitle>
               </CardHeader>  
                 <div className='flex gap-2 justify-items-start flex-wrap pl-6 pr-6'>
@@ -428,25 +451,25 @@ function HomePageClient({events}:LinkedEventProps) {
                       Disaster type
                     </div>
                     <div>
-                      {currentDisaster?.type}
+                      {disasters[currentDisaster]?.metadata.disasterType}
                     </div>
                     <div className='font-extrabold'>
                       Date
                     </div>
                     <div>
-                      {new Date(currentDisaster!.date).toLocaleDateString()}
+                      {new Date(disasters[currentDisaster]?.metadata.startDate).toLocaleDateString()}
                     </div>
                     <div className='font-extrabold'>
                       Impact Chance
                     </div>
                     <div>
-                      {currentDisaster?.impact_chance}
+                      {disasters[currentDisaster]?.metadata.likelihood}
                     </div>
                     <div className='font-extrabold'>
                       Intesity
                     </div>
                     <div>
-                    <HorizontalProgressBar progress={currentDisaster!.intensity}/>
+                    <HorizontalProgressBar progress={disasters[currentDisaster]?.metadata.intensity}/>
                     </div>
                   </div>
                   <div className='flex flex-col md:flex-row gap-2 justify-between p-5'>
@@ -460,7 +483,7 @@ function HomePageClient({events}:LinkedEventProps) {
                     </Button>
                   </div>
                   <span className='mt-7 text-xl font-bold w-full flex justify-center'>Impending disasters</span>
-                  <LinkedEvents events={events} setCurrentDisaster={setCurrentDisaster} currentEvent={currentDisaster}/>
+                  <LinkedEvents events={disasters} setCurrentDisaster={setCurrentDisaster} currentEvent={disasters[currentDisaster]}/>
             </Card>   
         </CardContent>
     </Card>

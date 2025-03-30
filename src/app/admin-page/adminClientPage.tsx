@@ -281,9 +281,9 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
             position="top-right"
             theme='system'
             />
-            <CardContent className='w-full '>
+            <CardContent className='w-full'>
                 <CardHeader className='w-full bg-green-400'>
-                    <CardTitle className='text-xl font-extrabold justify-start text-center'>
+                    <CardTitle className='text-xl font-extrabold justify-start text-center w-full '>
                         Admin's Panel
                     </CardTitle>
                     <CardDescription className='text-xl text-black text-center'>
