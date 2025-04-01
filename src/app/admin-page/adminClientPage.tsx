@@ -31,6 +31,8 @@ import { DateRange } from 'react-date-range';
 import { format, isWithinInterval } from 'date-fns';
 import { Commet } from 'react-loading-indicators';
 import SpatialLayerPicker from './layersComponent';
+import { Upload } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 // all disasters
 type DisastersSum = {
@@ -57,6 +59,8 @@ type Disaster = {
 }
 
 function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
+
+    const router = useRouter()
 
 
     // tracking all the disasters 
@@ -281,16 +285,21 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
             position="top-right"
             theme='system'
             />
-            <CardContent className='w-full'>
-                <CardHeader className='w-full bg-green-400'>
+            <CardContent className='w-full '>
+                <CardHeader className='w-full bg-green-400 rounded-md mb-4 mt-4'>
                     <CardTitle className='text-xl font-extrabold justify-start text-center w-full '>
                         Admin's Panel
                     </CardTitle>
-                    <CardDescription className='text-xl text-black text-center'>
+                    <CardDescription className='text-black text-center'>
                         Manager Disaster Alert
                     </CardDescription>
                 </CardHeader>
                 <div className='flex flex-col items-center'>
+                    <div className='w-full flex justify-end m-2'>
+                        <Button variant="default" onClick={()=>router.push("/admin-page/disaster-upload")}>
+                           <Upload/> Upload New Disaster
+                        </Button>
+                    </div>
                     <Tabs defaultValue="pending-disasters" className='w-full'>
                         <TabsList className='flex justify-evenly m-0'> {/* Ensuring tabs are placed horizontally */}
                             <TabsTrigger value='pending-disasters' className='w-1/3'>
@@ -619,7 +628,7 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                         </TabsContent>
                     </Tabs>
                 </div>
-                <div className=' flex flex-col md:flex-row md:justify-evenly items-center md:items-start gap-2'>
+                <div className=' flex flex-col md:grid md:grid-cols-2 items-center md:items-start gap-2'>
                     <EmergencyHotlines emergencyHotlines={emergencyHotlines}/>
                     <SpatialLayerPicker/>
                 </div>

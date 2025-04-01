@@ -20,6 +20,7 @@ import polyline from '@mapbox/polyline';
 import NavigationInstructions from './navInstructions'
 import {Commet, TrophySpin} from 'react-loading-indicators';
 import { CreateMarker } from '../utils/ImageProgressing';
+import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
 
 
 type LinkedEventProps = {
@@ -102,25 +103,25 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
 
 
     //keeping track of which disaster is currently being displayed in detail
-    const [currentDisaster, setCurrentDisaster] = useState(Object.keys(disasters)[0])
+    const [currentDisaster, setCurrentDisaster] = useState(disasters[0])
 
 
     // keeping track of all the layers
-    const [layers, setLayers] = useState({})
+    const [layers, setLayers] = useState< {} | null>(null);
 
 
     // keeping track of all the layers selected to be rendered on to the map
-    const [filteredLayers, setFilteredLayers]= useState<string[]>([])
+    const [filterLayer, setFilterLayer]= useState<string | null>("")
 
     // keeping track of the data availability to update loading state
     const [loadingState, setLoadingState] = useState<boolean>(true)
 
     useEffect(()=>{
-      if(layers){
+      if(layers && Object.keys(layers).length > 0){
         setLoadingState(false)
       }
     },
-      [events])
+      [layers])
 
     
     // requesting geo location services
@@ -156,38 +157,75 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
     //toggle layer adds or removes a layer to the map when a layer button is clicked    
     const togglelayer = (targetLayer:any) =>{
 
-      if(filteredLayers && filteredLayers.includes(targetLayer)){
-        const filteredLyrs:any[] = filteredLayers.filter((layer:any)=>layer!=targetLayer)
-        setFilteredLayers(filteredLyrs)
+      if(filterLayer==targetLayer){
+        setFilterLayer("")
       }
-      else if(!filteredLayers.includes(targetLayer))
-       setFilteredLayers(prev =>[...prev, targetLayer])
+      else if(filterLayer!=targetLayer)
+       setFilterLayer(targetLayer)
+    }
+
+    //run the function to get recommended location route when a new filter layer s selected
+    useEffect(() => {
+      if (filterLayer && coords) { // 2. Add conditional check
+        GetRecommendedRouteWithinLayer();
+      }
+    }, [filterLayer, coords]);
+
+    //get the recommended go to location within the selected layer
+    const GetRecommendedRouteWithinLayer=async ()=>{
+
+      if (!coords) {
+        toast.error("Location data not available");
+        return;
+      }
+    
+       try{
+    
+        console.log(filterLayer)
+    
+        //print the parametes being passed into api call
+        console.log(`XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX${coords?.latitude}&y=${coords?.longitude}&disasterName=${currentDisaster}&layer=${filterLayer}`)
+        
+        const recommendedParams = await fetch(`http://localhost:3000/features?x=${coords?.latitude}&y=${coords?.longitude}&disasterName=${currentDisaster}&layer=${filterLayer}`)
+    
+        const parsedRecom = await recommendedParams.json()
+    
+        if(!recommendedParams.ok)
+        {
+          console.log(parsedRecom)
+          toast.error(`failed to get route for ${filterLayer?.split("_")[1]}`)
+          throw new Error(`failed to get route for ${filterLayer?.split("_")[1]}`)
+        }
+    
+        console.log("[parsedRecom.parsedGeom.x, parsedRecom.parsedGeom.y]", parsedRecom.parsedGeom.x, parsedRecom.parsedGeom.y)
+    
+        setWaypoints([[coords?.latitude, coords?.longitude], [parsedRecom.parsedGeom.x, parsedRecom.parsedGeom.y]]) 
+    
+       }catch(e){
+        console.log(`failed to get failed to get route for ${filterLayer?.split("_")[1]}, because ${e}`)
+        toast.error(`failed to get route for ${filterLayer?.split("_")[1]}`)
+       }
+    
     }
 
     //getting the layers information, shelters and hospitals and placing them into the layers state
     useEffect(() => {
       async function loadShapefile() {
-          try {
-              const layers = await fetch("http://localhost:3000/features/all");
-              const layersData = await layers.json();
-              let array =Object.keys(layersData)
-             console.log(array[0])
-              setLayers(layersData);
-              setFilteredLayers(Object.keys(layers))
-
-          } catch (error) {
-              console.error("Error loading shapefile:", error);
-          }
+        try {
+          const response = await fetch("http://localhost:3000/features/all");
+          if (!response.ok) throw new Error("Failed to fetch layers");
+          const layersData = await response.json();
+          setLayers(layersData);
+        } catch (error) {
+          console.error("Error loading shapefile:", error);
+          toast.error("Failed to load map data");
+          setLoadingState(false); // Ensure loading state updates even on error
+        }
       }
-  
       loadShapefile();
-  }, []);
+    }, []);
 
       //initially grabbing all available layers into the filters
-      useEffect(() => {
-        console.log(`the layers are:${layers}`)
-        setFilteredLayers((prev) => (prev === null ? Object.keys(layers) : prev));
-      }, [layers]);
 
 
    //grabbing current location
@@ -211,7 +249,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
     const [navDistance, setNavDistance] = useState<number| null>()
 
     //disaster parameters
-    const [disasterPolyCoords, setDisasterPolyCoords] = useState<any[]>([])
+    const [disasterPolyCoords, setDisasterPolyCoords] = useState<GeoJSON.GeoJsonObject | null>(null)
 
 
 
@@ -273,21 +311,24 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
 
     // Fix the useEffect
     useEffect(() => {
-      if (
-        disasters[currentDisaster]?.data[0]?.parsedGeom?.points &&
-        Array.isArray(disasters[currentDisaster].data[0].parsedGeom.points)
-      ) {
-        const points = disasters[currentDisaster].data[0].parsedGeom.points;
-        const formattedCoords = points.map(geom => [
-          Number(geom.x), // Latitude
-          Number(geom.y)  // Longitude
-        ]);
-        console.log(formattedCoords)
-        setDisasterPolyCoords(formattedCoords);
-      } else {
-        setDisasterPolyCoords([]);
-      }
+      console.log("currentDisaster:", currentDisaster);
+
+      fetch(`http://localhost:3000/disasters/${currentDisaster.disasterName}/geometry`)
+      .then(async (res) => {
+         const geometry = await res.json()
+         console.log("just called for the coords")
+         setDisasterPolyCoords(geometry as GeoJSON.GeoJsonObject)
+         toast.success("rendered the disaster parameters")
+      })
+      .catch((e) => {
+        console.log(e)
+        toast.error("failed to get disaster geometry")
+      })
+
     }, [currentDisaster, disasters]);
+
+
+
 
 
       useEffect(() => {
@@ -311,7 +352,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
   }
 
   return (
-   <div>
+   <Card>
       <Toaster
         position="top-right"
         theme='system'
@@ -345,15 +386,15 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
     </DialogContent>
     </Dialog>:
     <Card className='rounded-none'>
-
-              <CardHeader className='flex justify-center'>
-                  <CardTitle className='flex text-xl font-extrabold justify-center'>
+      <CardContent className='w-full'>
+              <CardHeader className='w-full bg-green-400 rounded-md mb-4 mt-4'>
+                  <CardTitle className='text-xl font-extrabold justify-start text-center w-full'>
                       Home Page
                   </CardTitle>
-                  <CardDescription className='flex justify-center'>Prepare for the next impending disaster </CardDescription>
+                  <CardDescription className='text-center text-black'>Prepare for the next impending disaster </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col md:flex-row  justify-around gap-2">
-            <div className='flex flex-col gap-2 md:w-[50%] h-screen'>    
+              <div className=" w-full flex flex-col md:flex-row  justify-around gap-2">
+                <div className='flex flex-col gap-2 md:w-[50%] h-screen'>    
                       <Card className="relative md:w-[100%] h-[500px]">
                         <MapContainer
                           center={ coords?[coords.latitude, coords.longitude]:[-13.254308, 34.301525]}
@@ -366,27 +407,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                             {/* {waypoints.map((pos, idx) => (
                               <Marker key={idx} position={pos} />
                             ))} */}
-                          {filteredLayers.length > 0 &&
-                              filteredLayers.map((layer) =>
-                                layers[layer].data.map((feature: any, index: number) => {
-                                  console.log(`is filetredLayers as array? : ${Array.isArray(filteredLayers)}, it is a ${typeof filteredLayers} and here is it ${JSON.stringify(filteredLayers)}`)
-                                  const coords = feature.parsedGeom;
-                                  console.log(`the coordintes are x: ${Number.parseInt (coords.y)} y: ${coords.x}`)
-                                  console.log(`the icon url is : ${layers[layer].featureIconURL}`)
-                                  console.log(CreateMarker("https://api.iconify.design/material-symbols-light:school-outline.svg?height=32&color=black"));
-                                  return (
-                                    <Marker key={index} position={[Number.parseFloat(coords.x), Number.parseFloat(coords.y)]} icon={CreateMarker(layers[layer].featureIconURL)}>
-                                      {/* <Popup>
-                                        <strong>{layer}</strong>
-                                        <br />
-                                        Name: {feature.properties.name || "Unknown"}
-                                        <br />
-                                        Type: {feature.properties.amenity || "Unknown"}
-                                      </Popup> */}
-                                    </Marker>
-                                  );
-                                })
-                              )}
+
                               {coords?
                                 <Marker position={[coords.latitude, coords.longitude]} icon={locationIcon}>
                                   <Popup>
@@ -401,8 +422,21 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                             }
                           {route.length > 0 && <Polyline positions={route} color="blue" />}
                           {route.length > 0 && <Marker position={waypoints[1]} icon={destinationIcon}></Marker>}
-                          <Polygon positions={disasterPolyCoords} pathOptions={{ color: "blue" }} />
-                          <Polygon positions={disasterPolyCoords} color="blue" />
+                          {/* <Polygon positions={disasterPolyCoords} pathOptions={{ color: "blue" }} /> */}
+                          {/* <Polygon positions={disasterPolyCoords} color="red" opacity={50} /> */}
+                          {disasterPolyCoords && (
+                            <GeoJSON
+                              key={JSON.stringify(disasterPolyCoords)}
+                              data={disasterPolyCoords}
+                              style={{
+                                fillColor: '#e53e3e',
+                                weight: 2,
+                                opacity: 1,
+                                color: 'white',
+                                fillOpacity: 0.7
+                              }}
+                            />
+                          )}
                         </MapContainer>
 
                         {/* Overlay filter options */}
@@ -413,7 +447,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                                 <Button 
                                 key={layer}
                                 onClick={()=>togglelayer(layer)}
-                                className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                                className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filterLayer==layer?'bg-green-400':'bg-white'}`} >
                                     <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
                                     <span>{layer.split("_")[1]}</span>
                                 </Button>
@@ -428,7 +462,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
             <Card className='md:w-[50%] bg-gray-100 p-2'>
               <CardHeader >
                 <CardTitle className='flex justify-center bg-orange-200 rounded-sm p-2'>
-                  {disasters[currentDisaster]?.metadata.disasterName}
+                  {ReplaceUnderScoreMakeCamelCase(currentDisaster.disasterName)}
                 </CardTitle>
               </CardHeader>  
                 <div className='flex gap-2 justify-items-start flex-wrap pl-6 pr-6'>
@@ -438,7 +472,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                         <Button 
                         key={layer}
                         onClick={()=>togglelayer(layer)}
-                        className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                        className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filterLayer==layer?'bg-green-400':'bg-white'}`} >
                             <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
                             <span>{layer.split("_")[1]}</span>
                         </Button>
@@ -451,25 +485,25 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                       Disaster type
                     </div>
                     <div>
-                      {disasters[currentDisaster]?.metadata.disasterType}
+                      {currentDisaster?.disasterType}
                     </div>
                     <div className='font-extrabold'>
                       Date
                     </div>
                     <div>
-                      {new Date(disasters[currentDisaster]?.metadata.startDate).toLocaleDateString()}
+                      {new Date(currentDisaster?.startDate).toLocaleDateString()}
                     </div>
                     <div className='font-extrabold'>
                       Impact Chance
                     </div>
                     <div>
-                      {disasters[currentDisaster]?.metadata.likelihood}
+                      {currentDisaster?.likelihood}
                     </div>
                     <div className='font-extrabold'>
                       Intesity
                     </div>
                     <div>
-                    <HorizontalProgressBar progress={disasters[currentDisaster]?.metadata.intensity}/>
+                    <HorizontalProgressBar progress={currentDisaster?.intensity}/>
                     </div>
                   </div>
                   <div className='flex flex-col md:flex-row gap-2 justify-between p-5'>
@@ -483,12 +517,13 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                     </Button>
                   </div>
                   <span className='mt-7 text-xl font-bold w-full flex justify-center'>Impending disasters</span>
-                  <LinkedEvents events={disasters} setCurrentDisaster={setCurrentDisaster} currentEvent={disasters[currentDisaster]}/>
-            </Card>   
+                  <LinkedEvents events={disasters} setCurrentDisaster={setCurrentDisaster} currentEvent={currentDisaster}/>
+              </Card>
+            </div>   
         </CardContent>
     </Card>
      }
-  </div>
+  </Card>
   )
 }
 
