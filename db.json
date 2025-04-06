@@ -7,7 +7,7 @@
       "date": "2025-07-05T20:30:00Z",
       "intensity": 70,
       "impact_chance": 45,
-      "status": "Approved"
+      "status": "Pending"
     },
     {
       "id": "2",
@@ -34,7 +34,7 @@
       "date": "2025-09-15T14:45:00Z",
       "intensity": 50,
       "impact_chance": 65,
-      "status": "Pending"
+      "status": "Approved"
     },
     {
       "id": "5",
@@ -52,11 +52,679 @@
       "date": "2024-09-15T14:45:00Z",
       "intensity": 80,
       "impact_chance": 65,
-      "status": "Declined"
+      "status": "Approved"
+    }
+  ],
+  "emergency-contacts": [
+    {
+      "id": "1",
+      "location": "Luchenza",
+      "phones": {
+        "numbers": [
+          "0887 393 647"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "2",
+      "location": "Thyolo",
+      "phones": {
+        "numbers": [
+          "0887 393 662"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "3",
+      "location": "Phalombe",
+      "phones": {
+        "numbers": [
+          "0887 393 660"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "4",
+      "location": "Mulanje",
+      "phones": {
+        "numbers": [
+          "0887 393 644"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "5",
+      "location": "Chiradzulu",
+      "phones": {
+        "numbers": [
+          "0887 393 659"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "6",
+      "location": "Chikwawa",
+      "phones": {
+        "numbers": [
+          "0887 393 656"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "7",
+      "location": "Nsanje",
+      "phones": {
+        "numbers": [
+          "0887 393 659"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "8",
+      "location": "Nchalo",
+      "phones": {
+        "numbers": [
+          "0887 393 643"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "9",
+      "location": "Bangula",
+      "phones": {
+        "numbers": [
+          "0887 393 649"
+        ]
+      },
+      "region": "SOUTH EAST REGION"
+    },
+    {
+      "id": "10",
+      "location": "Kasungu",
+      "phones": {
+        "numbers": [
+          "0887 393 641"
+        ]
+      },
+      "region": "CENTRAL EAST REGION POLICE"
+    },
+    {
+      "id": "11",
+      "location": "Ntchisi",
+      "phones": {
+        "numbers": [
+          "0887 393 626"
+        ]
+      },
+      "region": "CENTRAL EAST REGION POLICE"
+    },
+    {
+      "id": "12",
+      "location": "Salima",
+      "phones": {
+        "numbers": [
+          "0887 393 625"
+        ]
+      },
+      "region": "CENTRAL EAST REGION POLICE"
+    },
+    {
+      "id": "13",
+      "location": "Dowa",
+      "phones": {
+        "numbers": [
+          "0887 393 636"
+        ]
+      },
+      "region": "CENTRAL EAST REGION POLICE"
+    },
+    {
+      "id": "14",
+      "location": "Mponela",
+      "phones": {
+        "numbers": [
+          "0887 393 624"
+        ]
+      },
+      "region": "CENTRAL EAST REGION POLICE"
+    },
+    {
+      "id": "15",
+      "location": "Nkhunga",
+      "phones": {
+        "numbers": [
+          "0887 393 623"
+        ]
+      },
+      "region": "CENTRAL EAST REGION POLICE"
+    },
+    {
+      "id": "16",
+      "location": "Nkhotakota",
+      "phones": {
+        "numbers": [
+          "0887 393 633"
+        ]
+      },
+      "region": "CENTRAL EAST REGION POLICE"
+    },
+    {
+      "id": "17",
+      "location": "Headquarters",
+      "phones": {
+        "numbers": [
+          "0887 393 653"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "18",
+      "location": "Blantyre",
+      "phones": {
+        "numbers": [
+          "0887 393 650"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "19",
+      "location": "Limbe",
+      "phones": {
+        "numbers": [
+          "0887 393 663"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "20",
+      "location": "Chileka",
+      "phones": {
+        "numbers": [
+          "0887 393 651"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "21",
+      "location": "Ndirande",
+      "phones": {
+        "numbers": [
+          "0887 393 669"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "22",
+      "location": "Mwanza",
+      "phones": {
+        "numbers": [
+          "0887 393 645"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "23",
+      "location": "Neno",
+      "phones": {
+        "numbers": [
+          "0887 393 648"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "24",
+      "location": "Chilomoni",
+      "phones": {
+        "numbers": [
+          "0887 393 654"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "25",
+      "location": "Bvumbwe",
+      "phones": {
+        "numbers": [
+          "0887 393 658"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "26",
+      "location": "Bangwe",
+      "phones": {
+        "numbers": [
+          "0887 393 652"
+        ]
+      },
+      "region": "SOUTH WEST REGION POLICE"
+    },
+    {
+      "id": "27",
+      "location": "Headquarters",
+      "phones": {
+        "numbers": [
+          "0887 389 290"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "28",
+      "location": "Mzuzu",
+      "phones": {
+        "numbers": [
+          "0887 389 292"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "29",
+      "location": "Chitipa",
+      "phones": {
+        "numbers": [
+          "0887 389 287"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "30",
+      "location": "Karonga",
+      "phones": {
+        "numbers": [
+          "0887 389 288"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "31",
+      "location": "Mzimba",
+      "phones": {
+        "numbers": [
+          "0887 389 294"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "32",
+      "location": "Nkhatabay",
+      "phones": {
+        "numbers": [
+          "0887 389 285"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "33",
+      "location": "Likoma",
+      "phones": {
+        "numbers": [
+          "0887 389 283"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "34",
+      "location": "Rumphi",
+      "phones": {
+        "numbers": [
+          "0887 389 289"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "35",
+      "location": "Chintheche",
+      "phones": {
+        "numbers": [
+          "0887 389 281"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "36",
+      "location": "Champhira",
+      "phones": {
+        "numbers": [
+          "0887 389 282"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "37",
+      "location": "Kafukule",
+      "phones": {
+        "numbers": [
+          "0887 389 284"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "38",
+      "location": "Chikangawa",
+      "phones": {
+        "numbers": [
+          "0887 389 297"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "39",
+      "location": "Kapolo",
+      "phones": {
+        "numbers": [
+          "0887 389 268"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "40",
+      "location": "Songwe",
+      "phones": {
+        "numbers": [
+          "0887 393 678"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "41",
+      "location": "Chitsenga",
+      "phones": {
+        "numbers": [
+          "0887 393 673"
+        ]
+      },
+      "region": "NORTHERN REGION POLICE"
+    },
+    {
+      "id": "42",
+      "location": "Headquarters",
+      "phones": {
+        "numbers": [
+          "0887 393 668"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "43",
+      "location": "Zomba",
+      "phones": {
+        "numbers": [
+          "0887 393 664"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "44",
+      "location": "Mangochi",
+      "phones": {
+        "numbers": [
+          "0887 393 634"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "45",
+      "location": "Balaka",
+      "phones": {
+        "numbers": [
+          "0887 393 672"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "46",
+      "location": "Machinga",
+      "phones": {
+        "numbers": [
+          "0887 393 671"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "47",
+      "location": "Monkeybay",
+      "phones": {
+        "numbers": [
+          "0887 393 675"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "48",
+      "location": "Liwonde",
+      "phones": {
+        "numbers": [
+          "0887 359 184"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "49",
+      "location": "Namadzi",
+      "phones": {
+        "numbers": [
+          "0887 393 670"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "50",
+      "location": "Nayuchi",
+      "phones": {
+        "numbers": [
+          "0887 393 674"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "51",
+      "location": "Kachulu",
+      "phones": {
+        "numbers": [
+          "0887 393 677"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "52",
+      "location": "Namwera",
+      "phones": {
+        "numbers": [
+          "0887 393 676"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "53",
+      "location": "Makanjira",
+      "phones": {
+        "numbers": [
+          "0887 393 675"
+        ]
+      },
+      "region": "EASTERN REGION POLICE"
+    },
+    {
+      "id": "54",
+      "location": "Headquarters",
+      "phones": {
+        "numbers": [
+          "0887 393 628"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "55",
+      "location": "Lilongwe",
+      "phones": {
+        "numbers": [
+          "0887 378 370"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "56",
+      "location": "Kasungu",
+      "phones": {
+        "numbers": [
+          "0887 393 641"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "57",
+      "location": "Ntcheu",
+      "phones": {
+        "numbers": [
+          "0887 393 640"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "58",
+      "location": "Mchinji",
+      "phones": {
+        "numbers": [
+          "0887 393 635"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "59",
+      "location": "Dedza",
+      "phones": {
+        "numbers": [
+          "0887 393 643"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "60",
+      "location": "Nathenje",
+      "phones": {
+        "numbers": [
+          "0887 393 631"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "61",
+      "location": "Salima",
+      "phones": {
+        "numbers": [
+          "0887 393 625"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "62",
+      "location": "Kanengo",
+      "phones": {
+        "numbers": [
+          "0887 378 372"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "63",
+      "location": "Kawale",
+      "phones": {
+        "numbers": [
+          "0887 378 373"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "64",
+      "location": "Lingadzi",
+      "phones": {
+        "numbers": [
+          "0887 378 371"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "65",
+      "location": "Namitete",
+      "phones": {
+        "numbers": [
+          "0887 393 637"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "66",
+      "location": "Linthipe",
+      "phones": {
+        "numbers": [
+          "0887 393 632"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
+    },
+    {
+      "id": "67",
+      "location": "Lumbadzi",
+      "phones": {
+        "numbers": [
+          "0887 378 374"
+        ]
+      },
+      "region": "CENTRAL WEST REGION POLICE"
     }
   ]
- 
 }
-
- 
-

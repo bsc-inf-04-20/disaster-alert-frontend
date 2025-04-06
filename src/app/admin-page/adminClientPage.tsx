@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
     Table,
@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
   } from "@/components/ui/select"
-  
+ import EmergencyHotlines from "./emergencyHotlines" 
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,8 @@ import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { DateRange } from 'react-date-range';
 import { format, isWithinInterval } from 'date-fns';
+import { Commet } from 'react-loading-indicators';
+import SpatialLayerPicker from './layersComponent';
 
 // all disasters
 type DisastersSum = {
@@ -40,6 +42,7 @@ type DisastersSum = {
 //props from the parent, page.tsx
 type clientprops = {
     allDisasters: [],
+    emergencyHotlines:any[]
 }
 
 //Disaster information structure
@@ -53,7 +56,7 @@ type Disaster = {
     status: string
 }
 
-function AdminClientPage({ allDisasters}: clientprops) {
+function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
 
 
     // tracking all the disasters 
@@ -65,6 +68,16 @@ function AdminClientPage({ allDisasters}: clientprops) {
         Approved:[],
         Declined:[]
     })
+
+    //tracking dataloading state
+   const [loadingState, setLoadingState] = useState<boolean>(true)
+
+    useEffect(()=>{
+        if(allDisasters && emergencyHotlines){
+        setLoadingState(false)
+        }
+    },
+        [allDisasters, emergencyHotlines])
 
 
     //tracking the search for the different disasters
@@ -246,11 +259,19 @@ function AdminClientPage({ allDisasters}: clientprops) {
 
         setDisasters((prevDisasters:DisastersSum)=>({
             ...prevDisasters,
-            [fromStatus]: prevDisasters[fromStatus].filter((disaster:Disaster)=>disaster.id!=id),
-            [toStatus]: [...prevDisasters[toStatus], {...disaster, status:toStatus}]
+            [fromStatus as keyof DisastersSum]: prevDisasters[fromStatus as keyof DisastersSum].filter((disaster: Disaster) => disaster.id != id),
+            [toStatus as keyof DisastersSum]: [...prevDisasters[toStatus as keyof DisastersSum], {...disaster, status:toStatus}]
         }))
 
         
+    }
+
+    if(loadingState) {
+    return (
+        <div className="flex items-center justify-center w-full h-screen">
+        <Commet color="#32cd32" size="large" text="" textColor="" />
+        </div>
+    );
     }
 
 
@@ -261,10 +282,13 @@ function AdminClientPage({ allDisasters}: clientprops) {
             theme='system'
             />
             <CardContent className='w-full'>
-                <CardHeader>
-                    <CardTitle className='text-xl font-extrabold justify-start text-center'>
+                <CardHeader className='w-full bg-green-400'>
+                    <CardTitle className='text-xl font-extrabold justify-start text-center w-full '>
                         Admin's Panel
                     </CardTitle>
+                    <CardDescription className='text-xl text-black text-center'>
+                        Manager Disaster Alert
+                    </CardDescription>
                 </CardHeader>
                 <div className='flex flex-col items-center'>
                     <Tabs defaultValue="pending-disasters" className='w-full'>
@@ -305,7 +329,7 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                     <div className="border rounded-md shadow-md z-10 bg-white">
                                     <DateRange
                                         ranges={[dateRanges.pendingRange]}
-                                        onChange={(item) => setDateRanges(prev => ({
+                                        onChange={(item) => setDateRanges((prev:any) => ({
                                         ...prev,
                                         pendingRange: item.pendingSelection
                                         }))}
@@ -411,7 +435,7 @@ function AdminClientPage({ allDisasters}: clientprops) {
                                     <div className="border rounded-md shadow-md z-10 bg-white">
                                     <DateRange
                                         ranges={[dateRanges.approvedRange]}
-                                        onChange={(item) => setDateRanges(prev => ({
+                                        onChange={(item) => setDateRanges((prev:any) => ({
                                         ...prev,
                                         approvedRange: item.approvedSelection
                                         }))}
@@ -594,6 +618,10 @@ function AdminClientPage({ allDisasters}: clientprops) {
                             </Table>
                         </TabsContent>
                     </Tabs>
+                </div>
+                <div className=' flex flex-col md:flex-row md:justify-evenly items-center md:items-start gap-2'>
+                    <EmergencyHotlines emergencyHotlines={emergencyHotlines}/>
+                    <SpatialLayerPicker/>
                 </div>
             </CardContent>
         </Card>

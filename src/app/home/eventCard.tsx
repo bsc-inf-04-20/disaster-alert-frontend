@@ -9,15 +9,16 @@ type Event ={
     impact_chance: number
 }
 
-const EventCard = ({ event, setCurrentDisaster, currentEvent }: { event: Event, setCurrentDisaster: Function, currentEvent:Event }) => {
+const EventCard = ({ event, setCurrentDisaster, currentEvent }: { event: any, setCurrentDisaster: Function, currentEvent:Event }) => {
   return (
     <motion.div
-      className={`p-4 rounded-lg shadow-lg border-l-4 w-full text-center  ${ currentEvent.name==event.name?'bg-blue-200 ':'bg-white'}`}
+      className={`p-4 rounded-lg shadow-lg border-l-4 w-full text-center  ${ currentEvent.metadata.disasterName==event.metadata.disasterName?'bg-blue-200 ':'bg-white'}`}
       whileHover={{ scale: 1.05 }}
-      onClick={()=>setCurrentDisaster(event)}
+      onClick={()=>setCurrentDisaster(event.metadata.disasterName)}
     >
-      <h3 className="text-lg font-bold">{event.type}</h3>
-      <p className="text-sm">{new Date(event.date).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</p>
+      <span className="text-xl font-bold">{event.metadata.disasterName}</span>
+      <h3 className="text-lg font-bold">{event.metadata.disasterType}</h3>
+      <p className="text-sm">{new Date(event.metadata.startDate).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</p>
     </motion.div>
   );
 };
