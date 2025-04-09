@@ -1,8 +1,8 @@
 "use client"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Megaphone } from 'lucide-react'
 import React, { useState } from 'react'
-import { MapContainer, TileLayer } from 'react-leaflet'
 import "leaflet/dist/leaflet.css";
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,6 +26,17 @@ import {
 } from '@/components/ui/select'
 import { toast, Toaster } from 'sonner'
 import { Commet } from 'react-loading-indicators'
+import dynamic from "next/dynamic";
+
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false } // Disable SSR for this component
+);
+
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
 
 // Form Schema
 const formSchema = z.object({
@@ -302,14 +313,15 @@ function DisasterUpload() {
                       )}
                     />
                   </div>
-
+                  <div className='flex justify-center'>      
                    {
                     !isSubmitting?
                         <Button type="submit" className="w-full mt-6">
                             Submit Disaster Report
                         </Button>:
                         <Commet color="#32cd32" size="small" text="" textColor="" />
-                   }   
+                   }
+                  </div>    
                 </form>
               </Form>
             </CardContent>

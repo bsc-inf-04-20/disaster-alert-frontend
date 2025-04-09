@@ -33,12 +33,13 @@ import { Commet } from 'react-loading-indicators';
 import SpatialLayerPicker from './layersComponent';
 import { Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
 
 // all disasters
 type DisastersSum = {
-        Pending:Disaster[], 
-        Approved:Disaster[], 
-        Declined:Disaster[]
+        PENDING:Disaster[], 
+        APPROVED:Disaster[], 
+        DECLINED:Disaster[]
 }
 
 //props from the parent, page.tsx
@@ -49,13 +50,26 @@ type clientprops = {
 
 //Disaster information structure
 type Disaster = {
-    id: number,
-    type: string,
-    name: string,
-    date: Date,
+    id:number;
+    disasterType: string,
+    disasterName: string,
+    startDate: Date,
+    endDate:Date,
     intensity: number,
-    impact_chance: number,
+    likelyhood: number,
     status: string
+}
+
+//Disaster information structure
+type newDisasterType = {
+    id: number,
+    disasterType: string,
+    disasterName: string,
+    startDate: Date,
+    endDate:Date,
+    intensity: number,
+    likelyhood: number,
+    Status: string
 }
 
 function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
@@ -65,12 +79,12 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
 
     // tracking all the disasters 
     const [disasters, setDisasters] = useState<{
-                                Pending:Disaster[], 
-                                Approved:Disaster[], 
-                                Declined:Disaster[]}>({
-        Pending:[],
-        Approved:[],
-        Declined:[]
+                                PENDING:Disaster[], 
+                                APPROVED:Disaster[], 
+                                DECLINED:Disaster[]}>({
+        PENDING:[],
+        APPROVED:[],
+        DECLINED:[]
     })
 
     //tracking dataloading state
@@ -132,19 +146,21 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
     // useEffect with mechanisms that filter disasters including search query and date filtering
     useEffect(() => {
     const originalDisasters = {
-        Pending: allDisasters.filter((disaster: Disaster) => disaster.status === "Pending"),
-        Approved: allDisasters.filter((disaster: Disaster) => disaster.status === "Approved"),
-        Declined: allDisasters.filter((disaster: Disaster) => disaster.status === "Declined")
+        PENDING: allDisasters.filter((disaster: Disaster) => disaster.status === "PENDING"),
+        APPROVED: allDisasters.filter((disaster: Disaster) => disaster.status === "APPROVED"),
+        DECLINED: allDisasters.filter((disaster: Disaster) => disaster.status === "DECLINED")
     };
 
+    console.log("these are the original disasters", originalDisasters)
+
     // Filter function that combines text search and date range
-    const filterDisasters = (disasterType:string, searchText:string, dateRange:DateRange) => {
+    const filterDisasters = (disasterType:string, searchText:string, dateRange:{startDate:Date, endDate:Date, key:string}) => {
+
         let filtered = originalDisasters[disasterType];
-        
-        // Apply date filter if dates are set
-        if (dateRange.startDate && dateRange.endDate) {
+              
+        if (dateRange.startDate    && dateRange.endDate ) {
         filtered = filtered.filter(disaster => {
-            const disasterDate = new Date(disaster.date);
+            const disasterDate = new Date(disaster.startDate);
             return isWithinInterval(disasterDate, {
             start: dateRange.startDate,
             end: dateRange.endDate
@@ -155,7 +171,7 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
         // Apply text search if provided
         if (searchText && searchText.trim() !== "") {
         const options = {
-            keys: ['name', 'type', 'id'],
+            keys: ['disasterName', 'disasterType', 'id'],
             threshold: 0.4,
             includeScore: true
         };
@@ -164,15 +180,18 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
         const result = fuse.search(searchText);
         filtered = result.map(item => item.item);
         }
-        
+        console.log(filtered)
         return filtered;
     };
 
     // Apply all filters
+
+    console.log(allDisasters)
+
     setDisasters({
-        Pending: filterDisasters('Pending', disasterSearch.pendingSearch, dateRanges.pendingRange),
-        Approved: filterDisasters('Approved', disasterSearch.approvedSearch, dateRanges.approvedRange),
-        Declined: filterDisasters('Declined', disasterSearch.declinedSearch, dateRanges.declinedRange)
+        PENDING: filterDisasters('PENDING', disasterSearch.pendingSearch, dateRanges.pendingRange),
+        APPROVED: filterDisasters('APPROVED', disasterSearch.approvedSearch, dateRanges.approvedRange),
+        DECLINED: filterDisasters('DECLINED', disasterSearch.declinedSearch, dateRanges.declinedRange)
     });
     }, [disasterSearch, dateRanges, allDisasters]);
 
@@ -245,8 +264,8 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
 
         const fromStatus = disaster.status;
 
-        const res = await fetch(`http://localhost:4000/disasters/${disaster.id}`, {
-            method: 'PUT',
+        const res = await fetch(`http://localhost:3000/disasters/${disaster.id}`, {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -255,10 +274,10 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                 status:toStatus
             }),
         }).catch(error=>{
-            toast.error(`failed to change the status of ${disaster.type} ${disaster.name} to ${toStatus}`)
+            toast.error(`failed to change the status of ${disaster.disasterType} ${disaster.disasterName} to ${toStatus}`)
         })
 
-        toast.success(`successfully changed the status of ${disaster.type} ${disaster.name} to ${toStatus}` )
+        toast.success(`successfully changed the status of ${disaster.disasterType} ${disaster.disasterName} to ${toStatus}` )
 
 
         setDisasters((prevDisasters:DisastersSum)=>({
@@ -384,14 +403,14 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                 </TableHeader>
                                 <TableBody>
                                     {  
-                                    disasters.Pending.length > 0? 
-                                        disasters.Pending.map((pendingDisaster:Disaster)=>{
+                                    disasters.PENDING.length > 0? 
+                                        disasters.PENDING.map((pendingDisaster:Disaster)=>{
                                             return (
                                             <TableRow key={pendingDisaster.id}>
                                                 <TableCell className="w-1/5 p-2 ">{pendingDisaster.id}</TableCell>
-                                                <TableCell className="w-1/5 p-2 ">{pendingDisaster.name}</TableCell>
-                                                <TableCell className="w-1/5 p-2">{pendingDisaster.type}</TableCell>
-                                                <TableCell className="w-1/5 p-2">{new Date(pendingDisaster.date).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</TableCell>
+                                                <TableCell className="w-1/5 p-2 ">{ReplaceUnderScoreMakeCamelCase(pendingDisaster.disasterName)}</TableCell>
+                                                <TableCell className="w-1/5 p-2">{pendingDisaster.disasterType}</TableCell>
+                                                <TableCell className="w-1/5 p-2">{new Date(pendingDisaster.startDate).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</TableCell>
                                                 <TableCell className="w-1/5 p-2 ">{`${pendingDisaster.intensity} %`}</TableCell>
                                                 <TableCell className="w-1/5 p-2 ">
                                                 <Select 
@@ -402,9 +421,9 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                                         <SelectValue placeholder="status"/>
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="Pending">Pending</SelectItem>
-                                                        <SelectItem value="Approved">Approved</SelectItem>
-                                                        <SelectItem value="Declined">Decline</SelectItem>
+                                                        <SelectItem value="PENDING">Pending</SelectItem>
+                                                        <SelectItem value="APPROVED">Approved</SelectItem>
+                                                        <SelectItem value="DECLINED">Decline</SelectItem>
                                                     </SelectContent>
                                                     </Select>
                                                 </TableCell>
@@ -489,14 +508,14 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                     </TableHeader>
                                     <TableBody>
                                         {  
-                                        disasters.Approved.length > 0? 
-                                            disasters.Approved.map((approvedDisaster:Disaster)=>{
+                                        disasters.APPROVED.length > 0? 
+                                            disasters.APPROVED.map((approvedDisaster:Disaster)=>{
                                                 return (
                                                 <TableRow key={approvedDisaster.id}>
                                                     <TableCell className="w-1/5 p-2 font-medium">{approvedDisaster.id}</TableCell>
-                                                    <TableCell className="w-1/5 p-2 font-medium">{approvedDisaster.name}</TableCell>
-                                                    <TableCell className="w-1/5 p-2">{approvedDisaster.type}</TableCell>
-                                                    <TableCell className="w-1/5 p-2">{new Date(approvedDisaster.date).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</TableCell>
+                                                    <TableCell className="w-1/5 p-2 font-medium">{ReplaceUnderScoreMakeCamelCase(approvedDisaster.disasterName)}</TableCell>
+                                                    <TableCell className="w-1/5 p-2">{approvedDisaster.disasterType}</TableCell>
+                                                    <TableCell className="w-1/5 p-2">{new Date(approvedDisaster.startDate).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</TableCell>
                                                     <TableCell className="w-1/5 p-2 ">{`${approvedDisaster.intensity} %`}</TableCell>
                                                     <TableCell className="w-1/5 p-2 ">
                                                     <Select value={`${approvedDisaster.status}`}
@@ -506,9 +525,9 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                                             <SelectValue placeholder={`${approvedDisaster.status}`} />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="Pending">Pending</SelectItem>
-                                                            <SelectItem value="Approved">Approved</SelectItem>
-                                                            <SelectItem value="Declined">Declined</SelectItem>
+                                                            <SelectItem value="PENDING">Pending</SelectItem>
+                                                            <SelectItem value="APPROVED">Approved</SelectItem>
+                                                            <SelectItem value="DECLINED">Declined</SelectItem>
                                                         </SelectContent>
                                                         </Select>
                                                     </TableCell>
@@ -548,7 +567,7 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                     <div className="border rounded-md shadow-md z-10 bg-white">
                                     <DateRange
                                         ranges={[dateRanges.declinedRange]}
-                                        onChange={(item) => setDateRanges(prev => ({
+                                        onChange={(item) => setDateRanges((prev:any) => ({
                                         ...prev,
                                         declinedRange: item.declinedSelection
                                         }))}
@@ -593,14 +612,14 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                     </TableHeader>
                                     <TableBody>
                                         {  
-                                       disasters.Declined.length > 0? 
-                                            disasters.Declined.map((declinedDisaster:Disaster)=>{
+                                       disasters.DECLINED.length > 0? 
+                                            disasters.DECLINED.map((declinedDisaster:Disaster)=>{
                                                 return (
                                                 <TableRow key={declinedDisaster.id}>
                                                     <TableCell className="w-1/5 p-2 font-medium">{declinedDisaster.id}</TableCell>
-                                                    <TableCell className="w-1/5 p-2 font-medium">{declinedDisaster.name}</TableCell>
-                                                    <TableCell className="w-1/5 p-2">{declinedDisaster.type}</TableCell>
-                                                    <TableCell className="w-1/5 p-2">{new Date(declinedDisaster.date).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</TableCell>
+                                                    <TableCell className="w-1/5 p-2 font-medium">{ReplaceUnderScoreMakeCamelCase(declinedDisaster.disasterName)}</TableCell>
+                                                    <TableCell className="w-1/5 p-2">{declinedDisaster.disasterType}</TableCell>
+                                                    <TableCell className="w-1/5 p-2">{new Date(declinedDisaster.startDate).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</TableCell>
                                                     <TableCell className="w-1/5 p-2 ">{`${declinedDisaster.intensity} %`}</TableCell>
                                                     <TableCell className="w-1/5 p-2 ">
                                                     <Select value={`${declinedDisaster.status}`}
@@ -610,9 +629,9 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                                                             <SelectValue placeholder={declinedDisaster.status} />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="Pending">Pending</SelectItem>
-                                                            <SelectItem value="Approved">Approved</SelectItem>
-                                                            <SelectItem value="Declined">Declined</SelectItem>
+                                                            <SelectItem value="PENDING">Pending</SelectItem>
+                                                            <SelectItem value="APPROVED">Approved</SelectItem>
+                                                            <SelectItem value="DECLINED">Declined</SelectItem>
                                                         </SelectContent>
                                                         </Select>
                                                     </TableCell>

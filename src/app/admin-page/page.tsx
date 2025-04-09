@@ -1,11 +1,11 @@
 import React from 'react'
 import AdminClientPage from './adminClientPage';
 
-
+export const dynamic = 'force-dynamic';
     //featching all disasters
     async function getAllEvents() {
         try {
-          const res = await fetch("http://localhost:4000/disasters", {
+          const res = await fetch("http://localhost:3000/disasters/metadata", {
             cache: "no-store", // Prevents caching in SSR
           });
       

@@ -1,8 +1,8 @@
 import HomePageClient from "./homeClient";
 
+export const dynamic = 'force-dynamic';
 
-
-function sortByNearestDate(objects:any[]) {
+export function sortByNearestDate(objects:any[]) {
   return objects.sort((a:any, b:any) => {
     const dateA = new Date(a.startDate);
     const dateB = new Date(b.startDate);
@@ -20,7 +20,7 @@ function sortByNearestDate(objects:any[]) {
 
 async function getEvents() {
   try {
-    const res = await fetch("http://localhost:4000/disasters", {
+    const res = await fetch("http://localhost:4000/disasters?status=approved", {
       cache: "no-store", // Prevents caching in SSR
     });
 
@@ -37,30 +37,12 @@ async function getEvents() {
   }
 }
 
-async function getDisasters() {
-  try {
-    const res = await fetch("http://localhost:3000/disasters/metadata", {
-      cache: "no-store", // Prevents caching in SSR
-    });
-
-    if (!res.ok) {
-      throw new Error("Failed to fetch disasters");
-    }
-
-    const disasters= await res.json();
-
-     return disasters
-  } catch (error) {
-    console.error("Error fetching disasters:", error);
-    return null;
-  }
-}
 
 const HomePageServer = async () => {
 
-  const [events, disasters] = await Promise.all([getEvents(), getDisasters()])
+  const [events] = await Promise.all([getEvents()])
 
-  return <HomePageClient events={sortByNearestDate(events)} disasters={disasters} />;
+  return <HomePageClient events={sortByNearestDate(events)} />;
 };
 
 export default HomePageServer;
