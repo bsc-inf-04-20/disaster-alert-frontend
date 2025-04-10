@@ -2,24 +2,94 @@
 
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardContent, CardDescription, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardHeader, CardContent, CardDescription, CardTitle} from '@/components/ui/card'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
-import {Hospital, Shield, FireExtinguisher, ShieldIcon, Download} from 'lucide-react';
+import {Download, MapPin, Phone} from 'lucide-react';
 import "leaflet/dist/leaflet.css";
-import * as shapefile from "shapefile";
 import { GeoJSON } from "react-leaflet";
-import L, { icon, Icon } from "leaflet";
-import { Polygon } from "react-leaflet";
+import L from "leaflet";
 import HorizontalProgressBar from './horizontalGraph';
 import LinkedEvents from './linkedEvents';
 import { useGeolocated } from 'react-geolocated';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast, Toaster } from 'sonner';
 import MapUpdater from './mapUpdater';
 import polyline from '@mapbox/polyline';
 import NavigationInstructions from './navInstructions'
-import {Commet, TrophySpin} from 'react-loading-indicators';
-import { CreateMarker } from '../utils/ImageProgressing';
+import {Commet} from 'react-loading-indicators';
+import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
+import * as turf from "@turf/turf";
+
+
+
+async function getEmergencyContact(){
+  try {
+    const res = await fetch("http://localhost:4000/emergency-contacts", {
+      cache: "no-store", // Prevents caching in SSR
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch emergency contacts");
+    }
+
+    const contacts= await res.json();
+
+     return contacts
+  } catch (error) {
+    console.error("Error fetching emergency contacts", error);
+    return null;
+  }
+}
+
+// Load and parse GeoJSON file
+const loadGeoJSON = async (filePath) => {
+  try {
+    const geoJsonData =await fetch(filePath);
+    return await geoJsonData.json();
+  } catch (error) {
+    console.error("Error loading GeoJSON file:", error);
+    return null;
+  }
+};
+
+// Function to find which polygon a location is inside
+const findEmergencyContacts = async (filePath, longitude, latitude) => {
+  const geoJson = await loadGeoJSON(filePath)
+  console.log(geoJson)
+  if (!geoJson) return;
+
+  const locationPoint = turf.point([longitude, latitude]);
+
+  // Find matching polygon
+  const matchingFeature = geoJson.features.find(feature =>
+    turf.booleanPointInPolygon(locationPoint, feature.geometry)
+  );
+
+  console.log("matching feature", matchingFeature)
+
+  if (!matchingFeature) {
+    console.log("No matching region found.");
+    return null;
+  }
+
+  // Extract shapeName
+  const shapeName = matchingFeature.properties.shapeName;
+  console.log(`Location is inside: ${shapeName}`);
+
+  const emergencyContacts= await getEmergencyContact()
+
+  // Search emergency contacts database for matching location
+  const contact = emergencyContacts.find(ec => ec.location === shapeName);
+
+  console.log("the contact is ", contact)
+
+  if (contact) {
+    return contact;
+  } else {
+    console.log(`No emergency contacts found for ${shapeName}.`);
+    return [];
+  }
+};
+
 
 
 type LinkedEventProps = {
@@ -45,7 +115,7 @@ type Layer = {
   icon : string 
 };
 
-function HomePageClient({events, disasters}:LinkedEventProps) {
+function HomePageClient() {
 
 
 
@@ -102,30 +172,78 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
 
 
     //keeping track of which disaster is currently being displayed in detail
-    const [currentDisaster, setCurrentDisaster] = useState(Object.keys(disasters)[0])
+    const [currentDisaster, setCurrentDisaster] = useState<any | null>(null)
 
 
     // keeping track of all the layers
-    const [layers, setLayers] = useState({})
+    const [layers, setLayers] = useState< {} | null>(null);
 
 
     // keeping track of all the layers selected to be rendered on to the map
-    const [filteredLayers, setFilteredLayers]= useState<string[]>([])
+    const [filterLayer, setFilterLayer]= useState<string | null>("")
 
     // keeping track of the data availability to update loading state
     const [loadingState, setLoadingState] = useState<boolean>(true)
 
+    //keep track of location availability
+    const [gettingLocation, setGettingLocation] = useState<boolean>(false)
+
+
+    const [disasters, setDisasters]= useState([])
+
+    async function getDisasters() {
+      try {
+        const res = await fetch(`http://localhost:3000/disasters/metadata?y=${coords.latitude}&x=${coords.longitude}&status=approved`, {
+          cache: "no-store", // Prevents caching in SSR
+        });
+    
+        if (!res.ok) {
+          throw new Error("Failed to fetch disasters");
+        }
+    
+        const disasters= await res.json();
+    
+        return disasters
+      } catch (error) {
+        console.error("Error fetching disasters:", error);
+        return null;
+      }
+    }
+
+  //after the user's current coordinates are fetched, get the disasters at the current location
+    useEffect(() => {
+      const fetchDisasters = async () => {
+        if (coords) {
+          setDisasters(await getDisasters());
+        }
+      };
+      fetchDisasters();
+      console.log("the disasters are", disasters)
+    }, [coords]);
+
+  //set the current disaster after disasters are fetched
     useEffect(()=>{
-      if(layers){
+      if(disasters.length > 0){
+        setCurrentDisaster(disasters[0])
+      }
+    },
+    [disasters])
+
+    useEffect(()=>{
+      if(layers && Object.keys(layers).length > 0){
         setLoadingState(false)
       }
     },
-      [events])
+      [layers])
 
     
     // requesting geo location services
     // Update your requestGeolocation function:
     const requestGeolocation = () => {
+
+
+      setGettingLocation(true)
+
       if (navigator.geolocation) {
         // Request high accuracy specifically
         navigator.geolocation.getCurrentPosition(
@@ -135,11 +253,14 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
             setLocationEnabled(true);
             setCoords(position.coords);
             setDialogOpen(false);
+            setGettingLocation(false)
+            
           },
           (error) => {
             console.error("Geolocation error:", error);
             toast.error(`Location error: ${error.message}`);
             setLocationEnabled(false);
+            setGettingLocation(false)
           },
           {
             enableHighAccuracy: true,  // Request GPS if available
@@ -156,38 +277,95 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
     //toggle layer adds or removes a layer to the map when a layer button is clicked    
     const togglelayer = (targetLayer:any) =>{
 
-      if(filteredLayers && filteredLayers.includes(targetLayer)){
-        const filteredLyrs:any[] = filteredLayers.filter((layer:any)=>layer!=targetLayer)
-        setFilteredLayers(filteredLyrs)
+      if(filterLayer==targetLayer){
+        setFilterLayer("")
       }
-      else if(!filteredLayers.includes(targetLayer))
-       setFilteredLayers(prev =>[...prev, targetLayer])
+      else if(filterLayer!=targetLayer)
+       setFilterLayer(targetLayer)
+    }
+
+    //run the function to get recommended location route when a new filter layer s selected
+    useEffect(() => {
+      if (filterLayer && coords) { // 2. Add conditional check
+        GetRecommendedRouteWithinLayer();
+      }
+    }, [filterLayer, coords]);
+
+    const [emergencyContact, setEmergencyContact] = useState<any | null>(null)
+
+    useEffect(()=>{
+      if(coords)
+      findEmergencyContacts("geoBoundaries-MWI-ADM2_simplified.geojson", coords?.longitude, coords?.latitude)
+      .then((contact) => {
+        setEmergencyContact(contact);
+      }).catch((error) => {
+        toast.error("failed to fetch emergency contact")
+      })
+    }, [coords])
+
+    //get the recommended go to location within the selected layer
+    const GetRecommendedRouteWithinLayer=async ()=>{
+
+      if (!coords) {
+        toast.error("Location data not available");
+        return;
+      }
+    
+       try{
+    
+        console.log(filterLayer)
+    
+        //print the parametes being passed into api call
+        console.log(`XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX${coords?.latitude}&y=${coords?.longitude}&disasterName=${currentDisaster}&layer=${filterLayer}`)
+        
+        const recommendedParams = await fetch(`http://localhost:3000/features?x=${coords?.latitude}&y=${coords?.longitude}&disasterName=${currentDisaster}&layer=${filterLayer}`)
+    
+        const parsedRecom = await recommendedParams.json()
+    
+        if(!recommendedParams.ok)
+        {
+          console.log(parsedRecom)
+          toast.error(`failed to get route for ${filterLayer?.split("_")[1]}`)
+          throw new Error(`failed to get route for ${filterLayer?.split("_")[1]}`)
+        }
+    
+        console.log("[parsedRecom.parsedGeom.x, parsedRecom.parsedGeom.y]", parsedRecom.parsedGeom.x, parsedRecom.parsedGeom.y)
+    
+        setWaypoints(coords?[[coords.latitude, coords.longitude], [parsedRecom.parsedGeom.x, parsedRecom.parsedGeom.y]]:[]) 
+    
+       }catch(e){
+        console.log(`failed to get failed to get route for ${filterLayer?.split("_")[1]}, because ${e}`)
+        toast.error(`failed to get route for ${filterLayer?.split("_")[1]}`)
+       }
+    
     }
 
     //getting the layers information, shelters and hospitals and placing them into the layers state
     useEffect(() => {
-      async function loadShapefile() {
-          try {
-              const layers = await fetch("http://localhost:3000/features/all");
-              const layersData = await layers.json();
-              let array =Object.keys(layersData)
-             console.log(array[0])
-              setLayers(layersData);
-              setFilteredLayers(Object.keys(layers))
+      const abortController = new AbortController();
 
-          } catch (error) {
-              console.error("Error loading shapefile:", error);
+      async function loadShapefile() {
+        try {
+          const response = await fetch("http://localhost:3000/features/all",{
+            signal: abortController.signal
+        });
+          if (!response.ok) throw new Error("Failed to fetch layers");
+          const layersData = await response.json();
+          console.log("fetched layers")
+          setLayers(layersData);
+        } catch (error) {
+          if (!abortController.signal.aborted) {
+            toast.error("Failed to fetch map features");
           }
+          console.error("Error loading shapefile:", error);
+          toast.error("Failed to load map data");
+          setLoadingState(false); // Ensure loading state updates even on error
+        }
       }
-  
       loadShapefile();
-  }, []);
+    }, []);
 
       //initially grabbing all available layers into the filters
-      useEffect(() => {
-        console.log(`the layers are:${layers}`)
-        setFilteredLayers((prev) => (prev === null ? Object.keys(layers) : prev));
-      }, [layers]);
 
 
    //grabbing current location
@@ -211,9 +389,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
     const [navDistance, setNavDistance] = useState<number| null>()
 
     //disaster parameters
-    const [disasterPolyCoords, setDisasterPolyCoords] = useState<any[]>([])
-
-
+    const [disasterPolyCoords, setDisasterPolyCoords] = useState<GeoJSON.GeoJsonObject | null>(null)
 
       // Handle map clicks to set waypoints
 
@@ -273,21 +449,27 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
 
     // Fix the useEffect
     useEffect(() => {
-      if (
-        disasters[currentDisaster]?.data[0]?.parsedGeom?.points &&
-        Array.isArray(disasters[currentDisaster].data[0].parsedGeom.points)
-      ) {
-        const points = disasters[currentDisaster].data[0].parsedGeom.points;
-        const formattedCoords = points.map(geom => [
-          Number(geom.x), // Latitude
-          Number(geom.y)  // Longitude
-        ]);
-        console.log(formattedCoords)
-        setDisasterPolyCoords(formattedCoords);
-      } else {
-        setDisasterPolyCoords([]);
-      }
+      console.log("currentDisaster is:", currentDisaster);
+
+      if(currentDisaster == null){
+        toast.error("no disaster selected")
+        return} 
+      fetch(`http://localhost:3000/disasters/${currentDisaster.disasterName}/geometry`)
+      .then(async (res) => {
+         const geometry = await res.json()
+         console.log("just called for the coords")
+         setDisasterPolyCoords(geometry as GeoJSON.GeoJsonObject)
+         toast.success("rendered the disaster parameters")
+      })
+      .catch((e) => {
+        console.log(e)
+        toast.error("failed to get disaster geometry")
+      })
+
     }, [currentDisaster, disasters]);
+
+
+
 
 
       useEffect(() => {
@@ -302,7 +484,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
         }
       }, [isGeolocationEnabled, geoCoords, isGeolocationAvailable]);
 
-  if(loadingState) {
+  if(loadingState || !currentDisaster || layers==undefined || layers==null) {
     return (
       <div className="flex items-center justify-center w-full h-screen">
         <Commet color="#32cd32" size="large" text="" textColor="" />
@@ -311,99 +493,92 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
   }
 
   return (
-   <div>
+   <Card>
       <Toaster
         position="top-right"
         theme='system'
       />
-    {!isGeolocationPresent?
-    <div className='flex justify-center items-center h-screen'>
-      <div className='text-center text-2xl font-semibold items-center'>Your browser does not support Geo location</div>
-    </div>:
-    !locationEnabled?
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-    <DialogContent className='block'>
-        <DialogTitle className='text-center'>
-          Location Services
-        </DialogTitle>
-        <Card className='flex flex-col items-center m-2 rounded-md'>
-          <CardHeader>
-              <CardTitle className='text-center'>
-                  Geo Location is not enabled
-              </CardTitle>
-              <CardDescription>
-                  Geo location services are available but disabled
-              </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-                onClick={()=>requestGeolocation()}
-                > Enable Geo Location
-            </Button>
-          </CardContent>
-       </Card>
-    </DialogContent>
-    </Dialog>:
     <Card className='rounded-none'>
-
-              <CardHeader className='flex justify-center'>
-                  <CardTitle className='flex text-xl font-extrabold justify-center'>
+      <CardContent className='w-full'>
+              <CardHeader className='w-full bg-green-400 rounded-md mb-4 mt-4'>
+                  <CardTitle className='text-xl font-extrabold justify-start text-center w-full'>
                       Home Page
                   </CardTitle>
-                  <CardDescription className='flex justify-center'>Prepare for the next impending disaster </CardDescription>
+                  <CardDescription className='text-center text-black'>Prepare for the next impending disaster </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col md:flex-row  justify-around gap-2">
-            <div className='flex flex-col gap-2 md:w-[50%] h-screen'>    
+              <div className=" w-full flex flex-col md:flex-row  justify-around gap-2">
+                <div className='flex flex-col gap-2 md:w-[50%] h-screen'>    
                       <Card className="relative md:w-[100%] h-[500px]">
-                        <MapContainer
-                          center={ coords?[coords.latitude, coords.longitude]:[-13.254308, 34.301525]}
-                          zoom={coords ? 19 :6.3}
-                          style={{ height: "100%", width: "100%", borderRadius: "2%", borderColor: "orange" }}
-                        >
-                          <MapUpdater coords={coords}/>
-                          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                          <MapClickHandler />
-                            {/* {waypoints.map((pos, idx) => (
-                              <Marker key={idx} position={pos} />
-                            ))} */}
-                          {filteredLayers.length > 0 &&
-                              filteredLayers.map((layer) =>
-                                layers[layer].data.map((feature: any, index: number) => {
-                                  console.log(`is filetredLayers as array? : ${Array.isArray(filteredLayers)}, it is a ${typeof filteredLayers} and here is it ${JSON.stringify(filteredLayers)}`)
-                                  const coords = feature.parsedGeom;
-                                  console.log(`the coordintes are x: ${Number.parseInt (coords.y)} y: ${coords.x}`)
-                                  console.log(`the icon url is : ${layers[layer].featureIconURL}`)
-                                  console.log(CreateMarker("https://api.iconify.design/material-symbols-light:school-outline.svg?height=32&color=black"));
-                                  return (
-                                    <Marker key={index} position={[Number.parseFloat(coords.x), Number.parseFloat(coords.y)]} icon={CreateMarker(layers[layer].featureIconURL)}>
-                                      {/* <Popup>
-                                        <strong>{layer}</strong>
-                                        <br />
-                                        Name: {feature.properties.name || "Unknown"}
-                                        <br />
-                                        Type: {feature.properties.amenity || "Unknown"}
-                                      </Popup> */}
-                                    </Marker>
-                                  );
-                                })
-                              )}
-                              {coords?
-                                <Marker position={[coords.latitude, coords.longitude]} icon={locationIcon}>
-                                  <Popup>
-                                      <strong>current location</strong>
-                                      <br />
-                                      lat: {coords?.latitude}
-                                      <br />
-                                      lon: {coords?.longitude}
-                                  </Popup>
-                                </Marker>:
-                                ""  
-                            }
-                          {route.length > 0 && <Polyline positions={route} color="blue" />}
-                          {route.length > 0 && <Marker position={waypoints[1]} icon={destinationIcon}></Marker>}
-                          <Polygon positions={disasterPolyCoords} pathOptions={{ color: "blue" }} />
-                          <Polygon positions={disasterPolyCoords} color="blue" />
-                        </MapContainer>
+                        {
+                            !isGeolocationPresent?
+                            <div className='flex justify-center items-center h-full w-full'>
+                              <div className='text-center text-2xl font-semibold items-center'>Your browser does not support Geo location</div>
+                            </div>:
+                            !locationEnabled?
+                            <Card className='h-full w-full flex justify-center items-center'>
+                            <CardContent className='block'>
+                                  <CardHeader>
+                                      <CardTitle className='text-center'>
+                                          Geo Location is not enabled
+                                      </CardTitle>
+                                      <CardDescription>
+                                          Geo location services are available but disabled
+                                      </CardDescription>
+                                  </CardHeader>
+                                    <Button
+                                    className='flex justify-self-center'
+                                        onClick={()=>requestGeolocation()}
+                                        > Enable Geo Location
+                                    </Button>
+                            </CardContent>
+                            </Card>:
+                             gettingLocation?
+                             <div className="flex items-center justify-center w-full h-full">
+                                <Commet color="#32cd32" size="large" text="" textColor="" />
+                              </div>:
+                              <MapContainer
+                                center={ coords?[coords.latitude, coords.longitude]:[-13.254308, 34.301525]}
+                                zoom={coords ? 19 :6.3}
+                                style={{ height: "100%", width: "100%", borderRadius: "2%", borderColor: "orange" }}
+                              >
+                                <MapUpdater coords={coords}/>
+                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                <MapClickHandler />
+                                  {/* {waypoints.map((pos, idx) => (
+                                    <Marker key={idx} position={pos} />
+                                  ))} */}
+      
+                                    {coords?
+                                      <Marker position={[coords.latitude, coords.longitude]} icon={locationIcon}>
+                                        <Popup>
+                                            <strong>current location</strong>
+                                            <br />
+                                            lat: {coords?.latitude}
+                                            <br />
+                                            lon: {coords?.longitude}
+                                        </Popup>
+                                      </Marker>:
+                                      ""  
+                                  }
+                                {route.length > 0 && <Polyline positions={route} color="blue" />}
+                                {route.length > 0 && <Marker position={waypoints[1]} icon={destinationIcon}></Marker>}
+                                {/* <Polygon positions={disasterPolyCoords} pathOptions={{ color: "blue" }} /> */}
+                                {/* <Polygon positions={disasterPolyCoords} color="red" opacity={50} /> */}
+                                {disasterPolyCoords && (
+                                  <GeoJSON
+                                    key={JSON.stringify(disasterPolyCoords)}
+                                    data={disasterPolyCoords}
+                                    style={{
+                                      fillColor: 'transparent',
+                                      weight: 2,
+                                      opacity: 1,
+                                      color: 'red',
+                                      fillOpacity: 0.1,
+                                    }}
+                                  />
+                                )}
+                              </MapContainer>
+                        }
 
                         {/* Overlay filter options */}
                         <div className="flex absolute top-4 left-20 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-80 p-2 rounded">
@@ -413,7 +588,7 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                                 <Button 
                                 key={layer}
                                 onClick={()=>togglelayer(layer)}
-                                className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                                className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filterLayer==layer?'bg-green-400':'bg-white'}`} >
                                     <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
                                     <span>{layer.split("_")[1]}</span>
                                 </Button>
@@ -428,48 +603,70 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
             <Card className='md:w-[50%] bg-gray-100 p-2'>
               <CardHeader >
                 <CardTitle className='flex justify-center bg-orange-200 rounded-sm p-2'>
-                  {disasters[currentDisaster]?.metadata.disasterName}
+                  { `${currentDisaster.disasterType} ${ReplaceUnderScoreMakeCamelCase(currentDisaster.disasterName)}`}
                 </CardTitle>
               </CardHeader>  
-                <div className='flex gap-2 justify-items-start flex-wrap pl-6 pr-6'>
+                <Card className='p-2' >
+                  <CardHeader>
+                    <CardTitle className='text-center'>
+                       Emergency Contacts
+                    </CardTitle>
+                    <CardDescription className='text-center'>
+                        You seem to be in 
+                        <span className='text-green-400 font-semibold'>{` ${emergencyContact.location}`}</span>. For emergencies, call:
+                    </CardDescription>
+                  </CardHeader>
+                  <ul className='m-2'>
+                    {
+                      emergencyContact && emergencyContact.phones.numbers.map((phoneNumber: any, index: number) => (
+                        <li key={index} className='flex gap-2 justify-center items-center'>
+                          <Phone/>
+                          {phoneNumber}
+                        </li>
+                      ))
+                    }
+                  </ul>
+                </Card>
+                <Card className='flex gap-2 justify-items-start flex-wrap pl-6 pr-6 bg-white mt-2 p-2'>
+                  <span>Make your way to any of the nearest destination below:</span>
                 {
                     Object.keys(layers).map((layer:any, index:number)=>{
                       return (
                         <Button 
                         key={layer}
                         onClick={()=>togglelayer(layer)}
-                        className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filteredLayers.includes(layer)?'bg-green-400':'bg-white'}`} >
+                        className={`flex hover:text-white bg-gray-200 hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filterLayer==layer?'bg-green-400':'bg-white'}`} >
                             <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
                             <span>{layer.split("_")[1]}</span>
                         </Button>
                       )
                     })
                   }
-                </div>
+                </Card>
                   <div className=' grid grid-cols-2 gap-2 m-5'>
                     <div className='font-extrabold'>
                       Disaster type
                     </div>
                     <div>
-                      {disasters[currentDisaster]?.metadata.disasterType}
+                      {currentDisaster?.disasterType}
                     </div>
                     <div className='font-extrabold'>
                       Date
                     </div>
                     <div>
-                      {new Date(disasters[currentDisaster]?.metadata.startDate).toLocaleDateString()}
+                      {new Date(currentDisaster?.startDate).toLocaleDateString()}
                     </div>
                     <div className='font-extrabold'>
                       Impact Chance
                     </div>
                     <div>
-                      {disasters[currentDisaster]?.metadata.likelihood}
+                      {currentDisaster?.likelihood}
                     </div>
                     <div className='font-extrabold'>
                       Intesity
                     </div>
                     <div>
-                    <HorizontalProgressBar progress={disasters[currentDisaster]?.metadata.intensity}/>
+                    <HorizontalProgressBar progress={currentDisaster?.intensity}/>
                     </div>
                   </div>
                   <div className='flex flex-col md:flex-row gap-2 justify-between p-5'>
@@ -483,12 +680,12 @@ function HomePageClient({events, disasters}:LinkedEventProps) {
                     </Button>
                   </div>
                   <span className='mt-7 text-xl font-bold w-full flex justify-center'>Impending disasters</span>
-                  <LinkedEvents events={disasters} setCurrentDisaster={setCurrentDisaster} currentEvent={disasters[currentDisaster]}/>
-            </Card>   
+                  <LinkedEvents events={disasters} setCurrentDisaster={setCurrentDisaster} currentEvent={currentDisaster}/>
+              </Card>
+            </div>   
         </CardContent>
     </Card>
-     }
-  </div>
+  </Card>
   )
 }
 
@@ -497,3 +694,7 @@ export default HomePageClient
 function useMap() {
   throw new Error('Function not implemented.');
 }
+function e(reason: any): PromiseLike<never> {
+  throw new Error('Function not implemented.');
+}
+

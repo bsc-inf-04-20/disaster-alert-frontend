@@ -1,6 +1,5 @@
 "use client"
 import { ReactNode } from "react";
-import Base from "../../components/custom_componenst/Base";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 

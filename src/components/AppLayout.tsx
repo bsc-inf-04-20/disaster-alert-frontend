@@ -2,27 +2,34 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutDashboard, Package, ClipboardList, BarChart2, Bell, Search, User, Banknote, LogOut, Menu, Map, Settings, Clock, FileClock, Book } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { LogOut, Menu, Map, Settings,FileClock, Book, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from 'react';
+import { useState} from 'react';
 import AppDrawer from './mobileLayout';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const role = 1;
-  const isLoginPage = false;
+  const isLoginPage = pathname === '/login'
   const [open, setOpen] = useState(false);
   const [isMobileNavVisible, setIsMobileNavVisible] = useState(false);
 
   const navItems = [
     { role: 1, items: [
+      { title: "Profile", href: "/profile", icon: UserCircle },
       { title: "Home", href: "/home", icon: Map },
       { title: "Admin's panel", href: "/admin-page", icon: Settings },
       { title: "History", href: "/history", icon:FileClock  },
       { title: "Educational Modules", href: "/educational-modules", icon: Book },
       { title: "Logout", href: "/login", icon: LogOut }
     ]},
+    { role: 1, items: [
+      { title: "Profile", href: "/profile", icon: UserCircle  },
+      { title: "Home", href: "/home", icon: Map },
+      { title: "History", href: "/history", icon:FileClock  },
+      { title: "Educational Modules", href: "/educational-modules", icon: Book },
+      { title: "Logout", href: "/login", icon: LogOut }
+    ]}
   ];
 
   const filteredNavItems = navItems.find(nav => nav.role === role)?.items || [];
@@ -34,7 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const NavigationItems = () => (
     <div className="space-y-1">
-      {filteredNavItems.map((item) => {
+      {filteredNavItems.map((item:any) => {
         const Icon = item.icon;
         return (
           <Link
@@ -50,7 +57,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             }}
             className={`flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors ${
               pathname === item.href
-                ? 'bg-gray-100 text-gray-900 font-medium'
+                ? 'bg-gray-100 text-gray-900 font-medium mr-0'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { X, Settings, Settings2, Plus } from 'lucide-react'
+import { X, Settings, Settings2, Plus, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -58,6 +58,7 @@ const EmergencyHotlines = ({ emergencyHotlines }: EmergencyHotlinesProps) => {
         const [editDialogOpen, setEditDialogOpen] = useState(false)
         const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
         const [addDialogOpen, setAddDialogOpen] = useState(false)
+        const [importDialogOpen, setImportDialogOpen] = useState(false)
         
         // Phone number state
         const [selectedPhoneIndex, setSelectedPhoneIndex] = useState<number | null>(null)
@@ -203,8 +204,15 @@ const EmergencyHotlines = ({ emergencyHotlines }: EmergencyHotlinesProps) => {
                 <Card className="bg-gray-100 m-6 w-fit">
                     <CardContent>
                         <CardHeader>
-                            <CardTitle className="flex justify-center">
+                            <CardTitle className="flex flex-col justify-between items-center gap-2">
                                 Emergency Hotlines
+                                <Button 
+                                    onClick={() => setImportDialogOpen(true)}
+                                    variant='outline' 
+                                    className='bg-green-400'>
+                                        <Upload/> 
+                                        import contacts
+                                </Button>
                             </CardTitle>
                             <CardDescription className="flex justify-center">
                                 Updated on {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -383,6 +391,43 @@ const EmergencyHotlines = ({ emergencyHotlines }: EmergencyHotlinesProps) => {
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
+
+                {/* Import Dialog */}
+           
+                <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+                    <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Import Contacts</DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        Please upload a JSON file that includes contacts in the following structure:
+                    </DialogDescription>
+
+                    {/* Preview of the JSON structure */}
+                    <pre className="bg-gray-100 p-2 rounded text-sm my-4">
+                        {`{
+                        "id": "",
+                        "location": "",
+                        "phones": {
+                            "numbers": [
+                            ""
+                            ]
+                        },
+                        "region": ""
+                        }`}
+                    </pre>
+
+                    {/* Input for grabbing a JSON file */}
+                    <Input type="file" accept=".json" />
+
+                    <DialogFooter className="mt-4">
+                        <Button variant="outline" onClick={() => setImportDialogOpen(false)}>
+                        Close
+                        </Button>
+                    </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+ 
             </div>
         )
     }
