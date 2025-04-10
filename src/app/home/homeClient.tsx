@@ -202,7 +202,10 @@ function HomePageClient() {
         }
     
         const disasters= await res.json();
+
+        console.log("fisrt how of disasters",disasters)
     
+        
         return disasters
       } catch (error) {
         console.error("Error fetching disasters:", error);

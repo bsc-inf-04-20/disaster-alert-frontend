@@ -136,8 +136,8 @@ export default function LoginPage() {
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
             <Button 
-            className='justify-self-center'
-            onClick={() => setRegistrationDialogIsOpen(true)}
+            className='justify-self-center text-blue-400'
+            onClick={() => router.push("/registration")}
             variant='ghost'
             >You don't have an account? Register
             </Button>
