@@ -247,9 +247,8 @@ export default function RegisterPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="0">Admin</SelectItem>
-                        <SelectItem value="1">User</SelectItem>
-                        <SelectItem value="2">Guest</SelectItem>
+                        <SelectItem value="1">Admin</SelectItem>
+                        <SelectItem value="2">User</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

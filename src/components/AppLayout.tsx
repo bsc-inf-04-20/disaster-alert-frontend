@@ -43,7 +43,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
 
 
-
   const NavigationItems = () => (
     <div className="space-y-1">
       {filteredNavItems.map((item: any) => {
@@ -83,7 +82,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen">
-      {!isLoginPage && (
+      {!isMobileNavVisible && (
         <>
           {/* Desktop Sidebar */}
           <aside className="hidden md:block w-64 border-r bg-white print:hidden">
