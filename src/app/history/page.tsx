@@ -1,16 +1,19 @@
-import { Card,  CardHeader } from '@/components/ui/card'
+import { Card,  CardDescription,  CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import historyPage from './historyPage'
 import { Search } from 'lucide-react'
 
-async function page (){
+async function Page (){
     return(
-        <div className='space-y-10'>
-            <div className='items-center flex'>
-                <header className="w-full  text-white p-10 ">
-                <p className='flex text-3xl font-extrabold justify-center text-center text-black'>History </p>  
-                </header>
-                </div>
+        <Card className='space-y-10 h-screen p-4'>
+          <CardHeader className='w-full bg-green-400 rounded-md mb-4 mt-4'>
+            <CardTitle className='text-xl font-extrabold justify-start text-center w-full'>
+              History
+            </CardTitle>
+            <CardDescription className='text-center text-black'>
+              Understand the disaster history of your location
+            </CardDescription>
+          </CardHeader>
             <div className='space-y-6 relative mx-auto w-1/8 items-center max-w-md justify-center'>
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
             <input
@@ -27,7 +30,7 @@ async function page (){
                 <Card className='bg-green-300 flex flex-col ml-8  w-[1050px]'>
                     <div className='flex  px-32 w-full py-2 '>
                         <p className='text-2xl'><strong>Cyclone Chido</strong>  </p>
-                        <Button className='ml-auto  bg-green-200 w-1/5'><strong>More details</strong></Button>
+                        <Button className='ml-auto  bg-green-200 text-black w-1/5'><strong>More details</strong></Button>
                     </div>
                     
                     <div className='flex  px-32 w-full '>
@@ -38,8 +41,8 @@ async function page (){
                 </Card>
                 <Card className='bg-green-300 flex flex-col ml-8  w-[1050px]'>
                     <div className='flex  px-32 w-full py-2 '>
-                        <p className='text-2xl'><strong>Floods</strong>  </p>
-                        <Button className='ml-auto bg-green-200 w-1/5'><strong>More details</strong></Button>
+                        <p className='text-2xl '><strong>Floods</strong>  </p>
+                        <Button className='ml-auto bg-green-200 text-black w-1/5'><strong>More details</strong></Button>
                     </div>
                     
                     <div className='flex  px-32 w-full '>
@@ -49,7 +52,7 @@ async function page (){
                 </Card> 
             </div>
            
-        </div>
+        </Card>
     )
 }
-export default page
+export default Page

@@ -30,14 +30,11 @@ import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import { DateRange } from 'react-date-range';
 import { format, isWithinInterval } from 'date-fns';
+import Page from './page';
 
 function History(){
     return(
-       <div>
-        <Card className='bg-green-300'>
-
-        </Card>
-       </div> 
+     <Page/>
     )
 }
 
