@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LogOut, Menu, Map, Settings, FileClock, Book, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AppDrawer from './mobileLayout';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -40,8 +40,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const toggleMobileNav = () => {
     setIsMobileNavVisible(!isMobileNavVisible);
   };
-
-
 
   const NavigationItems = () => (
     <div className="space-y-1">
@@ -82,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen">
-      {!isMobileNavVisible && (
+      {!shouldHideNav && (
         <>
           {/* Desktop Sidebar */}
           <aside className="hidden md:block w-64 border-r bg-white print:hidden">
