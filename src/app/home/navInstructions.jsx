@@ -32,7 +32,7 @@ function NavigationInstructions({ route, instructions, userLocation }) {
   useEffect(() => {
     if (!userLocation || instructions.length === 0 || route.length === 0) return;
 
-    const currentInstruction = instructions[currentInstructionIndex];
+    const currentInstruction = instructions[currentInstructionIndex] ;
 
     console.log(currentInstruction)
     const instructionCoord = route[currentInstruction.interval[0]]; 
@@ -48,7 +48,10 @@ function NavigationInstructions({ route, instructions, userLocation }) {
     }
   }, [userLocation, instructions, route, currentInstructionIndex]);
 
+
   const currentInstruction = instructions[currentInstructionIndex];
+
+
 
   return (
     <Card className="bg-orange-200 rounded-lg w-full mt-2 mb-2">

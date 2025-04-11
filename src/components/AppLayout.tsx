@@ -4,14 +4,14 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LogOut, Menu, Map, Settings, FileClock, Book, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AppDrawer from './mobileLayout';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const role = 1;
-  const isLoginPage = pathname === '/login';
-  const isRegistrationPage = pathname === '/registration';
+  const isLoginPage = pathname.startsWith('/login');
+  const isRegistrationPage = pathname.startsWith('/registration');
   const shouldHideNav = isLoginPage || isRegistrationPage;
   const [open, setOpen] = useState(false);
   const [isMobileNavVisible, setIsMobileNavVisible] = useState(false);
@@ -40,6 +40,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const toggleMobileNav = () => {
     setIsMobileNavVisible(!isMobileNavVisible);
   };
+
+
+
 
   const NavigationItems = () => (
     <div className="space-y-1">
@@ -80,7 +83,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen">
-      {!shouldHideNav && (
+      {!isLoginPage && (
         <>
           {/* Desktop Sidebar */}
           <aside className="hidden md:block w-64 border-r bg-white print:hidden">
