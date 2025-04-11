@@ -2,15 +2,17 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LogOut, Menu, Map, Settings,FileClock, Book, UserCircle } from 'lucide-react';
+import { LogOut, Menu, Map, Settings, FileClock, Book, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useState} from 'react';
+import { useState } from 'react';
 import AppDrawer from './mobileLayout';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const role = 1;
-  const isLoginPage = pathname === '/login'
+  const isLoginPage = pathname === '/login';
+  const isRegistrationPage = pathname === '/registration';
+  const shouldHideNav = isLoginPage || isRegistrationPage;
   const [open, setOpen] = useState(false);
   const [isMobileNavVisible, setIsMobileNavVisible] = useState(false);
 
@@ -19,14 +21,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       { title: "Profile", href: "/profile", icon: UserCircle },
       { title: "Home", href: "/home", icon: Map },
       { title: "Admin's panel", href: "/admin-page", icon: Settings },
-      { title: "History", href: "/history", icon:FileClock  },
+      { title: "History", href: "/history", icon: FileClock },
       { title: "Educational Modules", href: "/educational-modules", icon: Book },
       { title: "Logout", href: "/login", icon: LogOut }
     ]},
-    { role: 1, items: [
-      { title: "Profile", href: "/profile", icon: UserCircle  },
+    { role: 2, items: [
+      { title: "Profile", href: "/profile", icon: UserCircle },
       { title: "Home", href: "/home", icon: Map },
-      { title: "History", href: "/history", icon:FileClock  },
+      { title: "History", href: "/history", icon: FileClock },
       { title: "Educational Modules", href: "/educational-modules", icon: Book },
       { title: "Logout", href: "/login", icon: LogOut }
     ]}
@@ -41,7 +43,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const NavigationItems = () => (
     <div className="space-y-1">
-      {filteredNavItems.map((item:any) => {
+      {filteredNavItems.map((item: any) => {
         const Icon = item.icon;
         return (
           <Link
@@ -78,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen">
-      {!isLoginPage && (
+      {!shouldHideNav && (
         <>
           {/* Desktop Sidebar */}
           <aside className="hidden md:block w-64 border-r bg-white print:hidden">
@@ -125,7 +127,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main content */}
-      <main className={`${isLoginPage ? 'w-full' : 'flex-1'} ${!isLoginPage ? 'md:pt-0 pt-16' : ''} overflow-auto bg-gray-50 print:w-full print:m-0 print:p-0 print:bg-white `}>
+      <main className={`${shouldHideNav ? 'w-full' : 'flex-1'} ${!shouldHideNav ? 'md:pt-0 pt-16' : ''} overflow-auto bg-gray-50 print:w-full print:m-0 print:p-0 print:bg-white`}>
         {children}
       </main>
     </div>
