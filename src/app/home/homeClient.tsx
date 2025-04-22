@@ -4,10 +4,10 @@ import React, { useEffect, useState, useCallback, useReducer } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardDescription, CardTitle} from '@/components/ui/card'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
-import {Download, MapPin, Phone} from 'lucide-react';
+import {CloudRainWind, Download, MapPin, Phone, RotateCcw} from 'lucide-react';
 import "leaflet/dist/leaflet.css";
-import { GeoJSON } from "react-leaflet";
-import L from "leaflet";
+import { GeoJSON, Polygon } from "react-leaflet";
+import L, from "leaflet";
 import HorizontalProgressBar from './horizontalGraph';
 import LinkedEvents from './linkedEvents';
 import { useGeolocated } from 'react-geolocated';
@@ -18,6 +18,17 @@ import NavigationInstructions from './navInstructions'
 import {Commet} from 'react-loading-indicators';
 import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
 import * as turf from "@turf/turf";
+import { getIconUrl } from '../utils/ImageProgressing';
+
+
+const getAlertColor = (level:any) => {
+  switch(level) {
+    case 'Red': return '#ff0000';
+    case 'Orange': return '#ff9900';
+    case 'Green': return '#00cc00';
+    default: return '#999999';
+  }
+};
 
 // Constants
 const GRAPHOPPER_API_KEY = "f0c392f0-13b6-4fc2-90f4-356817bfdfec";
@@ -131,7 +142,11 @@ function HomePageClient() {
   const [route, setRoute] = useState([]);
   const [navInstructions, setNavInstructions] = useState(null);
   const [navDistance, setNavDistance] = useState(null);
-  const [disasterPolyCoords, setDisasterPolyCoords] = useState(null);
+  const [disasterPolyCoords, setDisasterPolyCoords] = useState([]);
+  const [disasterTrackCoords, setDisasterTrackCoords] = useState([]);
+
+  //pop up that shows when the user clicks on the disaster track
+  const [trackPopupInfo, setTrackPopupInfo] = useState(null);
 
   // Data fetching with custom hooks for better organization
   const { data: layers, isLoading: layersLoading, error: layersError } = 
@@ -141,7 +156,7 @@ function HomePageClient() {
   const { data: disasters, isLoading: disastersLoading, error: disastersError } = 
     useDataFetcher(
       locationState.coords ? 
-      `${API_BASE_URL}/disasters/metadata?y=${locationState.coords.latitude}&x=${locationState.coords.longitude}&status=approved` : 
+      `http://localhost:3000/disaster-discovery-tracker/disasters?longitude=140.52&latitude=-11.60&includeHistory=false` : 
       null,
       [],
       [locationState.coords]
@@ -312,25 +327,28 @@ function HomePageClient() {
   }, [locationState.coords, filterLayer, currentDisaster]);
 
   // Get disaster geometry with caching to prevent redundant fetches
-  const fetchDisasterGeometry = useCallback(async (disasterName) => {
-    if (!disasterName) return null;
+  const fetchDisasterGeometry = useCallback(async (disasterId:string) => {
+    if (!disasterId) return null;
     
     // Check cache first
-    if (geometryCache.has(disasterName)) {
-      return geometryCache.get(disasterName);
+    if (geometryCache.has(disasterId)) {
+      return geometryCache.get(disasterId);
     }
     
     try {
-      const response = await fetch(`${API_BASE_URL}/disasters/${disasterName}/geometry`);
+      const response = await fetch(`${API_BASE_URL}/disaster-discovery-tracker/disasters/${disasterId.split("-")[1]}/`);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch disaster geometry: ${response.status}`);
       }
       
       const geometry = await response.json();
+
+
+      console
       
       // Update cache
-      geometryCache.set(disasterName, geometry);
+      geometryCache.set(disasterId, geometry);
       
       return geometry;
     } catch (error) {
@@ -412,10 +430,18 @@ function HomePageClient() {
   // Fetch disaster geometry when current disaster changes
   useEffect(() => {
     if (currentDisaster) {
-      fetchDisasterGeometry(currentDisaster.disasterName)
+      fetchDisasterGeometry(currentDisaster.disasterId)
         .then(geometry => {
           if (geometry) {
-            setDisasterPolyCoords(geometry);
+            console.log("Disaster geometry fetched:", geometry);
+            
+            const polygons = geometry.filter(feature => feature.geometry.type === "Polygon" )
+            const lineStrings = geometry.filter(feature => feature.geometry.type === "LineString" )
+            console.log("Disaster polygons filtered:", polygons);
+            
+            setDisasterPolyCoords(polygons);
+            setDisasterTrackCoords(lineStrings);
+            // setDisasterLineCoords
             toast.success("Rendered the disaster parameters");
           }
         })
@@ -424,6 +450,12 @@ function HomePageClient() {
         });
     }
   }, [currentDisaster, fetchDisasterGeometry]);
+
+  useEffect(() => {
+    if (disasterPolyCoords) {
+      console.log("--------------------------------------------------------------------"+JSON.stringify (disasterPolyCoords[0]?.geometry?.coordinates));
+    }
+  }, [disasterPolyCoords]);
 
   // Loading state determination - more comprehensive and prevents false loading states
   const isLoading = layersLoading || disastersLoading || locationState.isLoading || 
@@ -510,7 +542,7 @@ function HomePageClient() {
                     >
                       <MapUpdater coords={locationState.coords} />
                       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                      <MapClickHandler />
+                      {/* <MapClickHandler /> */}
                       
                       {locationState.coords && (
                         <Marker 
@@ -532,19 +564,54 @@ function HomePageClient() {
                         <Marker position={waypoints[1]} icon={icons.destination} />
                       )}
                       
-                      {disasterPolyCoords && (
-                        <GeoJSON
-                          key={JSON.stringify(disasterPolyCoords)}
-                          data={disasterPolyCoords}
-                          style={{
-                            fillColor: 'transparent',
-                            weight: 2,
-                            opacity: 1,
-                            color: 'red',
-                            fillOpacity: 0.1,
-                          }}
-                        />
-                      )}
+                      {disasterPolyCoords &&
+                        disasterPolyCoords.map((feature, key) => (
+                          <Polygon
+                            key={key}
+                            positions={feature.geometry.coordinates[0].map((coord) => [coord[1], coord[0]])} 
+                            stroke={true}
+                            color={getAlertColor(feature.properties.alertlevel)}
+                            fill={true}
+                            fillColor={getAlertColor(feature.properties.alertlevel)}
+                            fillOpacity={0.2}      
+                          />
+                          
+                        ))}
+
+                      {disasterTrackCoords &&
+                        disasterTrackCoords.map((feature, index) => (
+                         <React.Fragment key={index}>
+                          <Polyline
+                            key={index}
+                            positions={feature.geometry.coordinates.map((coord) => [coord[1], coord[0]])} 
+                            stroke={true}
+                            color="green"
+                            fill={true}
+                            fillColor="green"
+                            fillOpacity={0.2}
+                            eventHandlers={{
+                              click: (e) => {
+                                console.log("Disaster track clicked:", feature.properties);
+                                setTrackPopupInfo({
+                                  position: e.latlng,
+                                  properties: feature.properties,
+                                });
+                                setCurrentDisaster(feature.properties.disasterId); // You had this in the click handler too
+                              },
+                            }}
+                          />
+                          {trackPopupInfo && trackPopupInfo.properties.eventid === feature.properties.eventid && (
+                            <Popup position={trackPopupInfo.position} closeOnClick={true}>
+                              <div className='flex flex-col gap-2 justify-center items-center'>
+                                <h3 className='text-red-400'>{`${trackPopupInfo?.properties?.severitydata?.severity??"N?A"} ${trackPopupInfo?.properties?.severitydata?.severityunit??"N?A"}`}</h3>
+                                <CloudRainWind color='red'/>
+                                {/* Add other properties you want to display */}
+                              </div>
+                            </Popup>
+                          )}
+                        </React.Fragment>
+                        ))}
+                        
                     </MapContainer>
                   )
                 }
@@ -577,7 +644,7 @@ function HomePageClient() {
             <Card className='md:w-[50%] bg-gray-100 p-2'>
               <CardHeader>
                 <CardTitle className='flex justify-center bg-orange-200 rounded-sm p-2'>
-                  {currentDisaster && `${currentDisaster.disasterType} ${ReplaceUnderScoreMakeCamelCase(currentDisaster.disasterName)}`}
+                  {currentDisaster && currentDisaster.name}
                 </CardTitle>
               </CardHeader>  
               
@@ -626,7 +693,7 @@ function HomePageClient() {
                     Disaster type
                   </div>
                   <div>
-                    {currentDisaster.disasterType}
+                    {currentDisaster.eventType}
                   </div>
                   <div className='font-extrabold'>
                     Date
@@ -634,17 +701,18 @@ function HomePageClient() {
                   <div>
                     {new Date(currentDisaster.startDate).toLocaleDateString()}
                   </div>
-                  <div className='font-extrabold'>
+                  {/* <div className='font-extrabold'>
                     Impact Chance
                   </div>
                   <div>
                     {currentDisaster.likelihood}
-                  </div>
+                  </div> */}
                   <div className='font-extrabold'>
                     Intensity
                   </div>
                   <div>
-                    <HorizontalProgressBar progress={currentDisaster.intensity} />
+                    {/* <HorizontalProgressBar progress={currentDisaster.intensity} /> */}
+                    {`${currentDisaster.latestUpdate.severity} ${currentDisaster.latestUpdate.severityUnit}` }
                   </div>
                 </div>
               )}

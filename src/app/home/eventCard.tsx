@@ -13,12 +13,12 @@ type Event ={
 const EventCard = ({ event, setCurrentDisaster, currentEvent }: { event: any, setCurrentDisaster: Function, currentEvent:Event }) => {
   return (
     <motion.div
-      className={`p-4 rounded-lg shadow-lg border-l-4 w-full text-center  ${ currentEvent.disasterName==event.disasterName?'bg-blue-200 ':'bg-white'}`}
+      className={`p-4 rounded-lg shadow-lg border-l-4 w-full text-center  ${ currentEvent.name==event.name?'bg-blue-200 ':'bg-white'}`}
       whileHover={{ scale: 1.05 }}
       onClick={()=>setCurrentDisaster(event)}
     >
-      <span className="text-base font-extrabold">{ReplaceUnderScoreMakeCamelCase(event.disasterName)}</span>
-      <h3 className="text-sm ">{event.disasterType}</h3>
+      <span className="text-base font-extrabold">{event.name}</span>
+      <h3 className="text-sm ">Disaster type: {event.eventType}</h3>
       <p className="text-sm">{new Date(event.startDate).toLocaleDateString('en-US', {year: 'numeric', month:'long', day:'numeric'})}</p>
     </motion.div>
   );
