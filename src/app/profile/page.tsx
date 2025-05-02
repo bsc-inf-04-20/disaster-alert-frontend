@@ -1,6 +1,6 @@
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Briefcase, CheckCircle, Edit, Home, Languages, Mail, MessageCircle, Phone, UserCircle, UserSquare2Icon, X } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
 import { Switch } from '@/components/ui/switch'
@@ -8,6 +8,37 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Commet } from 'react-loading-indicators'
+import { LocationDialog } from './locationSelector'
+
+
+type UserRole = {
+    id: number;
+    name: string;
+  };
+
+  type UserLocation = {
+    id: number;
+    address: string;
+    lat: number;
+    lng: number;
+    type: 'home' | 'work'; // Add this for clarity
+  };
+  
+  type User = {
+    locations: UserLocation[]; // <-- CHANGED
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    preferedLanguage: 'English' | 'Chichewa';
+    createdAt: string;
+    updatedAt: string;
+    userRole: UserRole;
+  };
+  
+  
 
 const getProfile = async () => {
     const user = localStorage.getItem('user')
@@ -21,16 +52,165 @@ const getProfile = async () => {
     }
 }
 
+
+
 function ProfilePage() {
 
+    const updateLanguagePreference = async (language:string, userId:number) => {
+        try {
+          const response = await fetch(`http://localhost:3000/users/${userId}/languages/${language}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(formData),
+          });
+    
+          if (!response.ok) {
+            throw new Error(' failed to update language preference');
+          }
+          const updatedUser = await response.json();
+        //   setUserUpdateDialogOpen(false)
+          localStorage.setItem('user', JSON.stringify({...user, preferedLanguage: language}))
+          setUser((prevUser:any)=>{
+            if (prevUser) {
+              return { ...prevUser, preferedLanguage: language };
+            }
+            return prevUser;
+          })
+          toast.success('Profile updated successfully!');
+
+        } catch (error) {
+          console.error('Error updating user profile:', error);
+          toast.error('Error updating user profile. Please try again later.');
+        }
+    };
+
+
+    const updateProfile = async (formData: { [key: string]: any }, userId:number) => {
+        try {
+          const response = await fetch(`http://localhost:3000/users/${userId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(formData),
+          });
+    
+          if (!response.ok) {
+            throw new Error('Failed to update user');
+          }
+          const updatedUser = await response.json();
+          setUserUpdateDialogOpen(false)
+          localStorage.setItem('user', JSON.stringify(updatedUser))
+          setUser(updatedUser)
+          toast.success('Profile updated successfully!');
+
+        } catch (error) {
+          console.error('Error updating user profile:', error);
+          toast.error('Error updating user profile. Please try again later.');
+        }
+    };
+
+    const updateUserLocation = async (address: string, latitude: number, longitude: number, type: string) => {
+        try {
+          const response = await fetch(`http://localhost:3000/users/${user?.id}/locations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ address, latitude, longitude, type }),
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to update location');
+          }
+      
+          const updatedLocation = await response.json();
+      
+          // Now update the user's locations
+          setUser(prevUser => {
+            if (!prevUser) return prevUser;
+            const otherLocations = prevUser.locations.filter(loc => loc.type !== type);
+            const updatedLocations = [...otherLocations, updatedLocation];
+            const updatedUser = { ...prevUser, locations: updatedLocations };
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            return updatedUser;
+          });
+      
+          toast.success('Location updated successfully!');
+        } catch (error) {
+          console.error('Error updating user location:', error);
+          toast.error('Error updating user location. Please try again later.');
+        }
+      };
+      
+
+
+   const userDetailsfromLocalStorage = localStorage.getItem('user')
+
+
+//    const [selectedLanguage, setSelectedLanguage] = useState<'English' | 'Chichewa' | null>('english')
+
+   const [user, setUser] = useState<User | null>(null)
+
+   const [updatingUser, setUpdatingUser] = useState(false)
+
+   //update the user preferred language in local storage, state and call the api to update the user in the database
+    const handleLanguageChange = (language: 'English' | 'Chichewa') => {
+     setUser((prevUser:any) => {
+        if (prevUser) {
+          const updatedUser = { ...prevUser, preferedLanguage: language, userRole:user?.userRole.id };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          updateProfile(updatedUser, updatedUser.id)
+          return updatedUser;
+        }
+        return prevUser;
+     });
+    }
+
+   useEffect(() => {
+    if (userDetailsfromLocalStorage !== null) {
+      const parsedUser = JSON.parse(userDetailsfromLocalStorage);
+      setUser(parsedUser);
+      setFormData({
+        firstName: parsedUser.firstName,
+        lastName: parsedUser.lastName,
+        phoneNumber: parsedUser.phoneNumber || '',
+        email: parsedUser.email || '',
+        preferedLanguage: parsedUser.preferedLanguage || ''
+      });
+    }
+  }, [userDetailsfromLocalStorage]);
+
+  
+
     const [formData, setFormData] = useState({
-        name: 'John Doe',
-        phone: '08888888888',
-        email: 'name@example.com'
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        email: '',
+        preferedLanguage:''
     })
+
+    // inside ProfilePage component:
+    const [homeDialogOpen, setHomeDialogOpen] = useState(false);
+    const [workDialogOpen, setWorkDialogOpen] = useState(false);
+    const homeLocation = user?.locations.find(location => location.type === 'home') || null;
+    const workLocation = user?.locations.find(location => location.type === 'work') || null;
+    
+
 
     const [userUpdateDialogOpen, setUserUpdateDialogOpen] = useState(false)
 
+  if (userDetailsfromLocalStorage == null) {
+    return (
+        <div className="flex items-center justify-center w-full h-screen">
+        <Commet color="#32cd32" size="large" text="" textColor="" />
+        </div>
+    );
+  }else
   return (
     <Card className='rounded-none h-full flex flex-col'>
         <Toaster position="top-right" theme='system'/>
@@ -55,31 +235,31 @@ function ProfilePage() {
                     </Button>    
                     <div className='flex flex-col items-center gap-4 flex-1'>
                         <UserSquare2Icon size={100}/>
-                        <span className='text-2xl font-bold'>John Doe</span>
+                        <span className='text-2xl font-bold'>{`${user?.firstName?? "N/A"} ${user?.lastName?? "N/A"}`}</span>
                         <div className='w-full flex flex-col gap-4'>
                             <Card className='flex-1 flex justify-center gap-2 p-3'>
                                 <Phone size={18}/> 
-                                <span>08888888888</span>
+                                <span>{user?.phoneNumber?? "N/A"}</span>
                             </Card>
                             <Card className='flex-1 flex justify-center gap-2 p-3'>
                                 <Mail size={18}/> 
-                                <span>name@example.com</span>
+                                <span>{user?.email?? "N/A"}</span>
                             </Card>
                         </div>
                         <div className='w-full border-t-2 border-gray-300 pt-4 mt-auto'>
-                            <h3 className='font-bold mb-2'>Location information</h3>
-                            <div className='flex flex-col gap-2'>
-                                <span className='flex items-center gap-2'>
-                                    <Home size={18}/> 
-                                    Home Location 
-                                    <CheckCircle size={18} className='ml-2 text-green-500'/>
-                                </span>
-                                <span className='flex items-center gap-2'>
-                                    <Briefcase size={18}/> 
-                                    Work Location (optional)
-                                    <X size={18} className='ml-2 text-red-500'/>
-                                </span>
-                            </div>
+                        <h3 className='font-bold mb-2'>Location information</h3>
+                            {
+                                user && user.locations.length > 0  && user.locations.map((location) => (
+                                    <span
+                                        className="flex items-center gap-2 cursor-pointer hover:text-green-500 hover:font-bold"
+                                        onClick={ location.type=='work'? () => setWorkDialogOpen(true): () => setHomeDialogOpen(true) }
+                                        key={location.id}
+                                        >
+                                        {location.type === 'home' ? <Home size={18} /> : <Briefcase size={18} />} 
+                                         {location?.address || `${location.type} Location`}
+                                    </span>
+                                ))
+                            }
                         </div>
                     </div>
                 </Card>
@@ -93,7 +273,7 @@ function ProfilePage() {
                                 Notification Channels
                             </CardTitle>
                             <CardDescription className='text-black'>
-                                Either select one or two
+                                Either select one or both
                             </CardDescription>
                         </CardHeader>
                         <div className='space-y-4'>
@@ -127,6 +307,10 @@ function ProfilePage() {
                             <div className='flex justify-between items-center p-2'>
                                 <span className='font-bold'>English</span>
                                 <Switch 
+                                    checked={user? user.preferedLanguage === 'English': true}
+                                    onCheckedChange={(checked) => {
+                                        if (checked && user) updateLanguagePreference('English', user.id)
+                                      }}
                                     className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300"
                                     id='email' 
                                     defaultChecked/>
@@ -134,6 +318,10 @@ function ProfilePage() {
                             <div className='flex justify-between items-center p-2'>
                                 <span className='font-bold'>Chichewa</span>
                                 <Switch
+                                    checked={user?.preferedLanguage  === 'Chichewa'}
+                                    onCheckedChange={(checked) => {
+                                    if (checked && user) updateLanguagePreference('Chichewa', user.id)
+                                    }}
                                     className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300" 
                                     id='sms' 
                                     defaultChecked/>
@@ -155,12 +343,23 @@ function ProfilePage() {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="name" className="text-right">
-                                Name
+                                firstName
                             </Label>
                             <Input
                                 id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                value={formData.firstName}
+                                onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                                className="col-span-3"
+                            />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">
+                                lastName
+                            </Label>
+                            <Input
+                                id="name"
+                                value={formData.lastName}
+                                onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                                 className="col-span-3"
                             />
                         </div>
@@ -170,8 +369,8 @@ function ProfilePage() {
                             </Label>
                             <Input
                                 id="phone"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                value={formData.phoneNumber}
+                                onChange={(e) => setFormData({...formData, phoneNumber: e.target.value})}
                                 className="col-span-3"
                             />
                         </div>
@@ -188,15 +387,20 @@ function ProfilePage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button 
+                        {
+                            updatingUser?
+                            <Commet color="#32cd32" size='medium' text="" textColor="" />:
+                            <Button 
                             type="submit"
                             onClick={() => {
-                                setUserUpdateDialogOpen(false)
-                                toast.success('Profile updated successfully')
+                                console.log(" this is the user's id: ", user?.id)
+                                if(user)
+                                updateProfile(formData, user?.id)
                             }}
                         >
                             Save changes
                         </Button>
+                        }
                         <Button 
                             variant="outline" 
                             onClick={() => setUserUpdateDialogOpen(false)}
@@ -206,6 +410,22 @@ function ProfilePage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            <LocationDialog
+                setUser={setUser}
+                isOpen={homeDialogOpen}
+                onClose={() => setHomeDialogOpen(false)}
+                title="Select Home Location"
+                initialValue={homeLocation?.address}
+                onSave={(address, lat, lng) => updateUserLocation( address, lat, lng, 'home' )}
+            />
+            <LocationDialog
+                setUser= {setUser}
+                isOpen={workDialogOpen}
+                onClose={() => setWorkDialogOpen(false)}
+                title="Select Work Location"
+                initialValue={workLocation?.address}
+                onSave={(address, lat, lng) => updateUserLocation(address, lat, lng, 'work'  )}
+            />
     </Card>
   )
 }

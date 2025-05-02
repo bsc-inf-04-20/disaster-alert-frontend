@@ -585,9 +585,9 @@ function HomePageClient() {
                             key={index}
                             positions={feature.geometry.coordinates.map((coord) => [coord[1], coord[0]])} 
                             stroke={true}
-                            color="green"
+                            color={getAlertColor(feature.properties.alertlevel)}
                             fill={true}
-                            fillColor="green"
+                            fillColor={getAlertColor(feature.properties.alertlevel)}
                             fillOpacity={0.2}
                             eventHandlers={{
                               click: (e) => {
