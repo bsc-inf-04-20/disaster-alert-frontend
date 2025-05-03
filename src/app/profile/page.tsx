@@ -1,7 +1,7 @@
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import React, { useEffect, useState } from 'react'
-import { Briefcase, CheckCircle, Edit, Home, Languages, Mail, MessageCircle, Phone, UserCircle, UserSquare2Icon, X } from 'lucide-react'
+import { Briefcase, CheckCircle, Edit, Home, Languages, Mail, MapPin, MessageCircle, Phone, UserCircle, UserSquare2Icon, X } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
 import { Switch } from '@/components/ui/switch'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -22,8 +22,9 @@ type UserRole = {
     address: string;
     lat: number;
     lng: number;
-    type: 'home' | 'work'; // Add this for clarity
+    type: 'home' | 'work' | 'last';
   };
+  
   
   type User = {
     locations: UserLocation[]; // <-- CHANGED
@@ -51,6 +52,7 @@ const getProfile = async () => {
             }) 
     }
 }
+
 
 
 
@@ -115,6 +117,8 @@ function ProfilePage() {
     };
 
     const updateUserLocation = async (address: string, latitude: number, longitude: number, type: string) => {
+        
+        if(user)
         try {
           const response = await fetch(`http://localhost:3000/users/${user?.id}/locations`, {
             method: 'POST',
@@ -154,6 +158,18 @@ function ProfilePage() {
 //    const [selectedLanguage, setSelectedLanguage] = useState<'English' | 'Chichewa' | null>('english')
 
    const [user, setUser] = useState<User | null>(null)
+
+   useEffect(() => {
+    const stored = window.localStorage.getItem('user');
+    if (stored) {
+      try {
+        const parsed: User = JSON.parse(stored);
+        setUser(parsed);
+      } catch (e) {
+        console.error("Failed to parse stored user:", e);
+      }
+    }
+  }, []);
 
    const [updatingUser, setUpdatingUser] = useState(false)
 
@@ -197,12 +213,96 @@ function ProfilePage() {
     // inside ProfilePage component:
     const [homeDialogOpen, setHomeDialogOpen] = useState(false);
     const [workDialogOpen, setWorkDialogOpen] = useState(false);
-    const homeLocation = user?.locations.find(location => location.type === 'home') || null;
-    const workLocation = user?.locations.find(location => location.type === 'work') || null;
-    
+    const homeLocation = user?.locations.find(loc => loc.type === 'home') ?? null;
+    const workLocation = user?.locations.find(loc => loc.type === 'work') ?? null;
+    const lastLocation = user?.locations.find(loc => loc.type === 'last') ?? null;
 
 
     const [userUpdateDialogOpen, setUserUpdateDialogOpen] = useState(false)
+
+
+    //trackking user's real location 
+// Replace the existing useEffect for tracking location with this improved version
+
+useEffect(() => {
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by your browser.");
+      toast.error("Your browser doesn't support location tracking");
+      return;
+    }
+  
+    // Define a function to fetch & update location
+    const fetchAndUpdateLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        async ({ coords }) => {
+          const { latitude, longitude } = coords;
+          console.log("Got coordinates:", latitude, longitude);
+  
+          try {
+            // Only update server if user exists
+            if (user?.id) {
+              await updateUserLocation("Current location", latitude, longitude, "last");
+              
+              // Local update only after successful server update
+              setUser((prev:any) => {
+                if (!prev) return prev;
+                
+                // Create a copy of locations without the last location
+                const others = prev.locations.filter((l:UserLocation) => l.type !== "last");
+                
+                // Add the new last location
+                const updated = [
+                  ...others,
+                  { id: Date.now(), address: "Current location", lat: latitude, lng: longitude, type: "last" }
+                ];
+                
+                const updatedUser = { ...prev, locations: updated };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                return updatedUser;
+              });
+              
+              toast.success("Location updated successfully");
+            } else {
+              console.warn("User not loaded yet, can't update location");
+            }
+          } catch (error) {
+            console.error("Failed to update location:", error);
+            toast.error("Failed to update your location");
+          }
+        },
+        (err) => {
+          console.error("Location error:", err.code, err.message);
+          
+          // Show different messages based on error type
+          if (err.code === 1) { // PERMISSION_DENIED
+            toast.error("Location access denied. Please enable location permissions in your browser.");
+          } else if (err.code === 2) { // POSITION_UNAVAILABLE
+            toast.error("Location information is unavailable.");
+          } else if (err.code === 3) { // TIMEOUT
+            toast.error("Location request timed out.");
+          } else {
+            toast.error("Unknown error occurred while getting location.");
+          }
+        },
+        { 
+          enableHighAccuracy: true, 
+          maximumAge: 0,
+          timeout: 10000 // 10 second timeout
+        }
+      );
+    };
+  
+    // Initial fetch
+    fetchAndUpdateLocation();
+    
+    // Setup interval for periodic updates
+    const intervalId = setInterval(fetchAndUpdateLocation, 5 * 60 * 1000); // every 5 minutes
+    
+    // Cleanup on component unmount
+    return () => clearInterval(intervalId);
+  }, [user?.id]); // Only re-run if user ID changes
+      
+
 
   if (userDetailsfromLocalStorage == null) {
     return (
@@ -251,15 +351,45 @@ function ProfilePage() {
                             {
                                 user && user.locations.length > 0  && user.locations.map((location) => (
                                     <span
-                                        className="flex items-center gap-2 cursor-pointer hover:text-green-500 hover:font-bold"
-                                        onClick={ location.type=='work'? () => setWorkDialogOpen(true): () => setHomeDialogOpen(true) }
+                                        className="flex items-center gap-2 cursor-pointer hover:text-green-500 hover:font-bold "
+                                        onClick={ location.type=='last'? 
+                                            ()=>{}:
+                                            location.type=='work'? 
+                                                () => setWorkDialogOpen(true):
+                                                () => setHomeDialogOpen(true) }
                                         key={location.id}
                                         >
-                                        {location.type === 'home' ? <Home size={18} /> : <Briefcase size={18} />} 
+                                        {location.type=='last'?<MapPin size={18} />: location.type === 'home' ? <Home size={18} /> : <Briefcase size={18} />} 
                                          {location?.address || `${location.type} Location`}
+                                         {location.type=='last'? ` lat: ${location.lat} lng ${location.lng}`:''}
                                     </span>
                                 ))
                             }
+                            {
+                                user && user.locations.find((loc:UserLocation)=>loc.type=='home')==null && (
+                                <span
+                                    className="flex items-center gap-2 cursor-pointer hover:text-green-500 hover:font-bold"
+                                    onClick={ () => setHomeDialogOpen(true) }
+        
+                                    >
+                                    <Home size={18} />  
+                                     Home  Location
+                                </span>
+                                )
+                            }
+                            {
+                                user && user.locations.find((loc:UserLocation)=>loc.type=='work')==null && (
+                                <span
+                                    className="flex items-center gap-2 cursor-pointer hover:text-green-500 hover:font-bold"
+                                    onClick={ () => setWorkDialogOpen(true) }
+        
+                                    >
+                                    <Briefcase size={18} />  
+                                     Work  Location
+                                </span>
+                                )
+                            }
+
                         </div>
                     </div>
                 </Card>
