@@ -139,6 +139,7 @@ function HomePageClient() {
   const [currentDisaster, setCurrentDisaster] = useState(null);
   const [filterLayer, setFilterLayer] = useState("");
   const [waypoints, setWaypoints] = useState([]);
+  const [ destinationProps , setDestinationProps] = useState({})
   const [route, setRoute] = useState([]);
   const [navInstructions, setNavInstructions] = useState(null);
   const [navDistance, setNavDistance] = useState(null);
@@ -298,14 +299,19 @@ function HomePageClient() {
 
   // Get recommended route within selected layer - memoized
   const getRecommendedRouteWithinLayer = useCallback(async () => {
-    if (!locationState.coords || !filterLayer || !currentDisaster) {
+
+    console.log(`getting recommedended route for ${filterLayer}, using api call to ${API_BASE_URL}/features?x=${locationState.coords.latitude}&y=${locationState.coords.longitude}&disasterName=${null}&layer=${filterLayer}`);
+
+    if (!locationState.coords || !filterLayer) {
       return;
     }
     
     try {
       const recommendedParams = await fetch(
-        `${API_BASE_URL}/features?x=${locationState.coords.latitude}&y=${locationState.coords.longitude}&disasterName=${currentDisaster.disasterName}&layer=${filterLayer}`
+        `${API_BASE_URL}/features?x=${locationState.coords.latitude}&y=${locationState.coords.longitude}&disasterName=${currentDisaster?.disasterName?? "N/A"}&layer=${filterLayer}`
       );
+
+      console.log("Recommended params response:", recommendedParams);
       
       if (!recommendedParams.ok) {
         const errorData = await recommendedParams.json();
@@ -313,8 +319,13 @@ function HomePageClient() {
         toast.error(`Failed to get route for ${filterLayer.split("_")[1]}`);
         return;
       }
-      
+      console.log(`setting way way for ${filterLayer}`);
       const parsedRecom = await recommendedParams.json();
+
+      const nameAndType= parsedRecom.properrties
+
+      setDestinationProps(parsedRecom.properties)
+
       setWaypoints(locationState.coords ? 
         [[locationState.coords.latitude, locationState.coords.longitude], 
          [parsedRecom.parsedGeom.x, parsedRecom.parsedGeom.y]] : 
@@ -561,7 +572,15 @@ function HomePageClient() {
                       
                       {route.length > 0 && <Polyline positions={route} color="blue" />}
                       {route.length > 0 && waypoints[1] && (
-                        <Marker position={waypoints[1]} icon={icons.destination} />
+                        <Marker position={waypoints[1]} icon={icons.destination} >
+                          <Popup>
+                            <strong>Destination</strong>
+                            <br />
+                              name: {destinationProps?.name??"N/A"}
+                            <br />
+                              amenity: {destinationProps?.amenity??"N/A"}
+                          </Popup>
+                        </Marker>
                       )}
                       
                       {disasterPolyCoords &&
@@ -637,6 +656,7 @@ function HomePageClient() {
                 route={route} 
                 instructions={navInstructions} 
                 userLocation={locationState.coords} 
+                distance = {navDistance}
               />  
               }
             </div>
