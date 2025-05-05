@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useReducer } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardDescription, CardTitle} from '@/components/ui/card'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
-import {CloudRainWind, Download, MapPin, Phone, RotateCcw} from 'lucide-react';
+import {CloudRainWind, Download, Edit, Hand, HomeIcon, MapPin, Phone, RotateCcw, UserCircle} from 'lucide-react';
 import "leaflet/dist/leaflet.css";
 import { GeoJSON, Polygon } from "react-leaflet";
 import L, from "leaflet";
@@ -19,6 +19,7 @@ import {Commet} from 'react-loading-indicators';
 import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
 import * as turf from "@turf/turf";
 import { getIconUrl } from '../utils/ImageProgressing';
+import { useRouter } from 'next/navigation';
 
 
 const getAlertColor = (level:any) => {
@@ -133,6 +134,8 @@ function HomePageClient() {
     coords: null,
     isLoading: false
   });
+
+  const router = useRouter();
 
   // App state management
   const [dialogOpen, setDialogOpen] = useState(true);
@@ -493,21 +496,31 @@ function HomePageClient() {
 
   // Rest of your rendering code would continue here, with the same JSX structure
   return (
-   <Card>
+   <div className='min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8'>
       <Toaster
         position="top-right"
         theme='system'
       />
-      <Card className='rounded-none'>
-        <CardContent className='w-full'>
-          <CardHeader className='w-full bg-green-400 rounded-md mb-4 mt-4'>
-            <CardTitle className='text-xl font-extrabold justify-start text-center w-full'>
-              Home Page
-            </CardTitle>
-            <CardDescription className='text-center text-black'>
-              Prepare for the next impending disaster
-            </CardDescription>
-          </CardHeader>
+      <div className='max-w-6xl mx-auto'>
+        {/* Page Header */}
+        <div className="bg-gradient-to-r from-green-400 to-green-500 rounded-xl shadow-lg mb-6 p-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+              <HomeIcon className="h-8 w-8" />
+              HOME
+            </h1>
+            <p className="text-green-50 mt-1">
+              Prepare for the next disaster with our app
+            </p>
+          </div>
+          <Button 
+            onClick={() =>router.push("/profile") }
+            className="bg-white text-green-600 hover:bg-green-50 shadow transition-all duration-200 flex items-center gap-2"
+          >
+            <Hand size={16} />
+            {`Hello, ${JSON.parse(window.localStorage.getItem('user'))?.firstName?? "There"}`}
+          </Button>
+        </div>
           
           <div className="w-full flex flex-col md:flex-row justify-around gap-2">
             <div className='flex flex-col gap-2 md:w-[50%] h-screen'>    
@@ -759,9 +772,8 @@ function HomePageClient() {
               />
             </Card>
           </div>   
-        </CardContent>
-      </Card>
-   </Card>
+      </div>
+   </div>
   );
 }
 
