@@ -34,6 +34,7 @@ import SpatialLayerPicker from './layersComponent';
 import { Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
+import UploadModuleCard from './educationalModuleUpload';
 
 // all disasters
 type DisastersSum = {
@@ -318,6 +319,7 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                         <Button variant="default" onClick={()=>router.push("/admin-page/disaster-upload")}>
                            <Upload/> Upload New Disaster
                         </Button>
+
                     </div>
                     <Tabs defaultValue="pending-disasters" className='w-full'>
                         <TabsList className='flex justify-evenly m-0'> {/* Ensuring tabs are placed horizontally */}
@@ -650,7 +652,9 @@ function AdminClientPage({ allDisasters, emergencyHotlines}: clientprops) {
                 <div className=' flex flex-col md:grid md:grid-cols-2 items-center md:items-start gap-2'>
                     <EmergencyHotlines emergencyHotlines={emergencyHotlines}/>
                     <SpatialLayerPicker/>
+                    <UploadModuleCard />
                 </div>
+
             </CardContent>
         </Card>
     )

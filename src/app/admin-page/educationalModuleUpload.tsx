@@ -25,7 +25,7 @@ export default function UploadModuleCard() {
     formData.append('title', title);
 
     try {
-      const response = await fetch('/api/modules/upload', {
+      const response = await fetch('http://localhost:3000/modules/upload', {
         method: 'POST',
         body: formData,
       });

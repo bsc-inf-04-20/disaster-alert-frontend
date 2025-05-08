@@ -13,9 +13,12 @@ export default function PageContent() {
   const [modules, setModules] = useState<Module[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/educational-module') // Update with your actual endpoint
+    fetch('http://localhost:3000/modules') // Update with your actual endpoint
       .then((res) => res.json())
-      .then((data) => setModules(data))
+      .then((data) => {
+        console.log('Modules from server:', data);
+        setModules(data);
+  })
       .catch((err) => console.error('Error fetching modules:', err));
   }, []);
 
@@ -38,9 +41,10 @@ export default function PageContent() {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-          {modules.map((mod) => (
-            <ModuleCard key={mod.id} title={mod.title} pdfUrl={mod.pdfUrl} />
-          ))}
+        {Array.isArray(modules) && modules.map((mod) => (
+  <ModuleCard key={mod.id} children={mod.title} />
+))}
+
         </div>
       </CardContent>
     </Card>
