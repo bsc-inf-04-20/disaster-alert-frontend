@@ -15,7 +15,10 @@ import {
   UserSquare2Icon, 
   X,
   Bell,
-  AtSign
+  AtSign,
+  CloudSun,
+  Moon,
+  Sun
 } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
 import { Switch } from '@/components/ui/switch'
@@ -53,6 +56,34 @@ type User = {
   userRole: UserRole;
   notificationChannelType: 'email' | 'sms' | 'both';
 };
+
+function GetGreeting() {
+  const hour = new Date().getHours();
+
+  let greeting = "";
+  let Icon = Sun; // default icon
+
+  if (hour >= 5 && hour < 12) {
+    greeting = "Good morning";
+    Icon = Sun;
+  } else if (hour >= 12 && hour < 18) {
+    greeting = "Good afternoon";
+    Icon = CloudSun;
+  } else if (hour >= 18 && hour < 22) {
+    greeting = "Good evening";
+    Icon = CloudSun;
+  } else {
+    greeting = "Good night";
+    Icon = Moon;
+  }
+
+  return (
+    <div className="flex items-center space-x-2">
+      <Icon className="w-6 h-6" />
+      <span>{greeting}</span>
+    </div>
+  );
+}
 
 const getProfile = async () => {
   const user = localStorage.getItem('user')
@@ -377,8 +408,8 @@ function ProfilePage() {
         <div className="bg-gradient-to-r from-green-400 to-green-500 rounded-xl shadow-lg mb-6 p-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-              <UserCircle className="h-8 w-8" />
-              My Profile
+              <GetGreeting/>
+              {`, ${user?.firstName || "User"}`}
             </h1>
             <p className="text-green-50 mt-1">
               Manage your personal information and preferences

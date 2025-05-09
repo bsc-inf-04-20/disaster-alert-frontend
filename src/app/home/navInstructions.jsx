@@ -94,29 +94,40 @@ export default function NavigationInstructions({ route, instructions, userLocati
   };
 
   return (
-    <Card className="bg-gradient-to-br from-green-400 to-green-600 rounded-xl w-full mt-2 mb-2 shadow-lg overflow-hidden">
+    <Card
+      className="
+        box-border           /* ensure padding & border are included in width/height calculations */ 
+        w-full 
+        sm:max-w-md          /* at small screens and up, constrain to a medium max-width */ 
+        md:max-w-lg          /* larger max-width on medium screens */ 
+        mx-auto              /* center horizontally within parent */ 
+        mt-2 mb-2 
+        bg-gradient-to-br from-green-400 to-green-600 
+        rounded-xl 
+        shadow-lg 
+        overflow-hidden
+      "
+    >
       {/* Progress bar at the top */}
       <div className="h-1 bg-gray-200">
-        <div 
-          className="h-full bg-white transition-all duration-500" 
+        <div
+          className="h-full bg-white transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
-      
+  
       <CardHeader className="flex items-center justify-between p-3 text-white">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Timer className="w-5 h-5" />
-          <span className="font-medium">
-            {formatDistance(distance)}
-          </span>
+          <span className="font-medium">{formatDistance(distance)}</span>
         </div>
-        <h2 className="text-xl font-bold">Navigation</h2>
-        <div className="flex items-center gap-1">
+        <h2 className="text-xl font-bold flex-1 text-center">Navigation</h2>
+        <div className="flex items-center gap-1 flex-shrink-0">
           <span className="text-sm">{formatTime(currentInstruction?.time)}</span>
         </div>
       </CardHeader>
-      
-      <CardContent className="bg-white rounded-t-xl p-4">
+  
+      <CardContent className="box-border bg-white p-4 rounded-t-xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentInstructionIndex}
@@ -127,12 +138,12 @@ export default function NavigationInstructions({ route, instructions, userLocati
             className="flex flex-col gap-4"
           >
             {/* Current instruction */}
-            <div className="flex items-center gap-3 bg-green-50 p-4 rounded-lg shadow-sm">
-              <div className="p-3 bg-green-400 text-white rounded-full">
+            <div className="flex items-center gap-3 bg-green-50 p-4 rounded-lg shadow-sm box-border">
+              <div className="flex-shrink-0 p-3 bg-green-400 text-white rounded-full">
                 {getDirectionIcon(currentInstruction?.text)}
               </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-gray-800 text-lg">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-gray-800 text-lg truncate">
                   {currentInstruction?.text || "Loading..."}
                 </h3>
                 <p className="text-gray-500 text-sm">
@@ -140,16 +151,18 @@ export default function NavigationInstructions({ route, instructions, userLocati
                 </p>
               </div>
             </div>
-            
+  
             {/* Next instruction preview if available */}
             {nextInstruction && (
               <div className="flex items-center gap-3 mt-2 opacity-70">
-                <div className="p-2 bg-green-200 text-green-600 rounded-full">
+                <div className="flex-shrink-0 p-2 bg-green-200 text-green-600 rounded-full">
                   <ChevronRight className="w-4 h-4" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-600">Then</h4>
-                  <p className="text-gray-500 text-sm">{nextInstruction.text}</p>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-gray-600 truncate">Then</h4>
+                  <p className="text-gray-500 text-sm truncate">
+                    {nextInstruction.text}
+                  </p>
                 </div>
               </div>
             )}
@@ -158,4 +171,5 @@ export default function NavigationInstructions({ route, instructions, userLocati
       </CardContent>
     </Card>
   );
+  
 }

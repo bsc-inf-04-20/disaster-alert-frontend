@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useReducer } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardDescription, CardTitle} from '@/components/ui/card'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
-import {CloudRainWind, Download, Edit, Hand, HomeIcon, MapPin, Phone, RotateCcw, UserCircle} from 'lucide-react';
+import {Activity, AlertCircle, AlertOctagon, AlertTriangle, Calendar, Clipboard, CloudRainWind, Download, Edit, Hand, HomeIcon, MapIcon, MapPin, Navigation, Phone, RotateCcw, Shield, ShieldAlert, TestTube, Trash2, UserCircle} from 'lucide-react';
 import "leaflet/dist/leaflet.css";
 import { GeoJSON, Polygon } from "react-leaflet";
 import L, from "leaflet";
@@ -20,6 +20,7 @@ import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
 import * as turf from "@turf/turf";
 import { getIconUrl } from '../utils/ImageProgressing';
 import { useRouter } from 'next/navigation';
+import { Switch } from '@/components/ui/switch';
 
 
 const getAlertColor = (level:any) => {
@@ -43,6 +44,8 @@ const useDataFetcher = (url, initialData = null, dependencies = []) => {
     isLoading: true,
     error: null
   });
+
+  console.log(`the URL here is: ${url}`)
 
   useEffect(() => {
     let isMounted = true;
@@ -148,9 +151,60 @@ function HomePageClient() {
   const [navDistance, setNavDistance] = useState(null);
   const [disasterPolyCoords, setDisasterPolyCoords] = useState([]);
   const [disasterTrackCoords, setDisasterTrackCoords] = useState([]);
+  const [layersVisible, setLayersVisible] = useState(true);
 
   //pop up that shows when the user clicks on the disaster track
   const [trackPopupInfo, setTrackPopupInfo] = useState(null);
+
+
+  async function generateTrialDisaster() {
+    try {
+      const response = await fetch(
+        "http://localhost:3000/disaster-discovery-tracker/disasters/test",
+        { method: "POST" }
+      );
+  
+      if (!response.ok) {
+        // Handle HTTP errors
+        throw new Error("Network response was not ok: " + response.statusText);
+      }
+  
+      const data = await response.json();
+      // Only toast success after we have a good response
+      toast.success("Successfully generated trial disaster! Refresh to see changes.");
+      return data;
+    } catch (error) {
+      console.error("Fetch operation failed:", error);
+      toast.error("Failed to generate trial disaster");
+      // rethrow if you want callers to handle it too
+      throw error;
+    }
+  }
+
+  async function removeTrialDisaster() {
+    
+    try {
+      const response = await fetch(
+        "http://localhost:3000/disaster-discovery-tracker/disasters/test",
+        { method: "DELETE" }
+      );
+  
+      if (!response.ok) {
+        // Handle HTTP errors
+        throw new Error("Network response was not ok: " + response.statusText);
+      }
+  
+      const data = await response.json();
+      // Only toast success after we have a good response
+      toast.success("Successfully deleted trial disasters! Refresh to see changes.");
+      return data;
+    } catch (error) {
+      console.error("Fetch operation failed:", error);
+      toast.error("Failed to delete trial disasters");
+      // rethrow if you want callers to handle it too
+      throw error;
+    }
+  }
 
   // Data fetching with custom hooks for better organization
   const { data: layers, isLoading: layersLoading, error: layersError } = 
@@ -160,7 +214,7 @@ function HomePageClient() {
   const { data: disasters, isLoading: disastersLoading, error: disastersError } = 
     useDataFetcher(
       locationState.coords ? 
-      `http://localhost:3000/disaster-discovery-tracker/disasters?longitude=140.52&latitude=-11.60&includeHistory=false` : 
+      `http://localhost:3000/disaster-discovery-tracker/disasters?longitude=${locationState.coords.longitude}&latitude=${locationState.coords.latitude}&includeHistory=true` : 
       null,
       [],
       [locationState.coords]
@@ -496,123 +550,148 @@ function HomePageClient() {
 
   // Rest of your rendering code would continue here, with the same JSX structure
   return (
-   <div className='min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8'>
+    <div className='min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-6 lg:p-8'>
       <Toaster
         position="top-right"
         theme='system'
       />
       <div className='max-w-6xl mx-auto'>
-        {/* Page Header */}
-        <div className="bg-gradient-to-r from-green-400 to-green-500 rounded-xl shadow-lg mb-6 p-6 flex items-center justify-between">
+        {/* Page Header - Modernized with subtle shadow and rounded corners */}
+        <div className="bg-gradient-to-r from-green-400 to-green-500 rounded-2xl shadow-lg mb-6 p-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
               <HomeIcon className="h-8 w-8" />
-              HOME
+              <span className="tracking-wide">HOME</span>
             </h1>
-            <p className="text-green-50 mt-1">
+            <p className="text-green-50 mt-2 text-sm md:text-base flex items-center gap-2">
+              <ShieldAlert size={16} />
               Prepare for the next disaster with our app
             </p>
           </div>
-          <Button 
-            onClick={() =>router.push("/profile") }
-            className="bg-white text-green-600 hover:bg-green-50 shadow transition-all duration-200 flex items-center gap-2"
-          >
-            <Hand size={16} />
-            {`Hello, ${JSON.parse(window.localStorage.getItem('user'))?.firstName?? "There"}`}
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button 
+            className='flex gap-2 bg-white text-green-600 hover:bg-green-50 hover:shadow-md shadow transition-all duration-200 rounded-xl'
+            onClick={() =>generateTrialDisaster()}
+            >
+              <Clipboard />
+              Generate Trial Disaster
+             </Button>
+            <Button 
+            className='flex gap-2 bg-white text-green-600 hover:bg-green-50 hover:shadow-md shadow transition-all duration-200 rounded-xl'
+            onClick={() =>removeTrialDisaster()}
+            >
+              <Trash2 />
+              Remove Trial Disasters
+             </Button>  
+            <Button 
+              onClick={() => router.push("/profile")}
+              className="bg-white text-green-600 hover:bg-green-50 hover:shadow-md shadow transition-all duration-200 flex items-center gap-2 rounded-xl"
+            >
+              <Hand size={16} />
+              {`Hello, ${JSON.parse(window.localStorage.getItem('user'))?.firstName ?? "There"}`}
+            </Button>
+          </div>
         </div>
           
-          <div className="w-full flex flex-col md:flex-row justify-around gap-2">
-            <div className='flex flex-col gap-2 md:w-[50%] h-screen'>    
-              <Card className="relative md:w-[100%] h-[500px]">
-                {
-                  !locationState.isAvailable ? (
-                    <div className='flex justify-center items-center h-full w-full'>
-                      <div className='text-center text-2xl font-semibold items-center'>
-                        Your browser does not support Geo location
-                      </div>
+        <div className="w-full flex flex-col md:flex-row gap-6">
+          {/* Left column - Map and navigation */}
+          <div className='flex flex-col gap-4 md:w-1/2 h-screen'>    
+            <Card className="relative h-[500px] rounded-xl overflow-hidden border border-gray-200 shadow-md">
+              {
+                !locationState.isAvailable ? (
+                  <div className='flex justify-center items-center h-full w-full'>
+                    <div className='text-center flex flex-col items-center gap-4'>
+                      <AlertTriangle size={48} className="text-amber-500" />
+                      <span className='text-2xl font-semibold'>Your browser does not support Geo location</span>
                     </div>
-                  ) : !locationState.isEnabled ? (
-                    <Card className='h-full w-full flex justify-center items-center'>
-                      <CardContent className='block'>
-                        <CardHeader>
-                          <CardTitle className='text-center'>
-                            Geo Location is not enabled
-                          </CardTitle>
-                          <CardDescription>
-                            Geo location services are available but disabled
-                          </CardDescription>
-                        </CardHeader>
-                        <Button
-                          className='flex justify-self-center'
-                          onClick={requestGeolocation}
-                        >
-                          Enable Geo Location
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  ) : locationState.isLoading ? (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <Commet color="#32cd32" size="large" text="" textColor="" />
-                    </div>
-                  ) : (
-                    <MapContainer
-                      center={locationState.coords ? 
-                        [locationState.coords.latitude, locationState.coords.longitude] : 
-                        [-13.254308, 34.301525]
-                      }
-                      zoom={locationState.coords ? 19 : 6.3}
-                      style={{ height: "100%", width: "100%", borderRadius: "2%", borderColor: "orange" }}
-                    >
-                      <MapUpdater coords={locationState.coords} />
-                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                      {/* <MapClickHandler /> */}
-                      
-                      {locationState.coords && (
-                        <Marker 
-                          position={[locationState.coords.latitude, locationState.coords.longitude]} 
-                          icon={icons.location}
-                        >
-                          <Popup>
-                            <strong>Current location</strong>
-                            <br />
-                            lat: {locationState.coords.latitude.toFixed(6)}
-                            <br />
-                            lon: {locationState.coords.longitude.toFixed(6)}
-                          </Popup>
-                        </Marker>
-                      )}
-                      
-                      {route.length > 0 && <Polyline positions={route} color="blue" />}
-                      {route.length > 0 && waypoints[1] && (
-                        <Marker position={waypoints[1]} icon={icons.destination} >
-                          <Popup>
-                            <strong>Destination</strong>
-                            <br />
-                              name: {destinationProps?.name??"N/A"}
-                            <br />
-                              amenity: {destinationProps?.amenity??"N/A"}
-                          </Popup>
-                        </Marker>
-                      )}
-                      
-                      {disasterPolyCoords &&
-                        disasterPolyCoords.map((feature, key) => (
-                          <Polygon
-                            key={key}
-                            positions={feature.geometry.coordinates[0].map((coord) => [coord[1], coord[0]])} 
-                            stroke={true}
-                            color={getAlertColor(feature.properties.alertlevel)}
-                            fill={true}
-                            fillColor={getAlertColor(feature.properties.alertlevel)}
-                            fillOpacity={0.2}      
-                          />
-                          
-                        ))}
-
-                      {disasterTrackCoords &&
-                        disasterTrackCoords.map((feature, index) => (
-                         <React.Fragment key={index}>
+                  </div>
+                ) : !locationState.isEnabled ? (
+                  <Card className='h-full w-full flex justify-center items-center bg-white/50 backdrop-blur-sm'>
+                    <CardContent className='block text-center'>
+                      <CardHeader>
+                        <MapPin size={48} className="mx-auto text-green-400 mb-2" />
+                        <CardTitle className='text-center'>
+                          Geo Location is not enabled
+                        </CardTitle>
+                        <CardDescription>
+                          Geo location services are available but disabled
+                        </CardDescription>
+                      </CardHeader>
+                      <Button
+                        className='flex mx-auto mt-4 bg-green-400 hover:bg-green-500'
+                        onClick={requestGeolocation}
+                      >
+                        Enable Geo Location
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : locationState.isLoading ? (
+                  <div className="flex items-center justify-center w-full h-full bg-white/50 backdrop-blur-sm">
+                    <Commet color="#32cd32" size="large" text="" textColor="" />
+                  </div>
+                ) : (
+                  <MapContainer
+                    center={locationState.coords ? 
+                      [locationState.coords.latitude, locationState.coords.longitude] : 
+                      [-13.254308, 34.301525]
+                    }
+                    zoom={locationState.coords ? 19 : 6.3}
+                    style={{ height: "100%", width: "100%", borderRadius: "0.75rem", borderColor: "transparent" }}
+                    className="z-10"
+                  >
+                    <MapUpdater coords={locationState.coords} />
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    
+                    {locationState.coords && (
+                      <Marker 
+                        position={[locationState.coords.latitude, locationState.coords.longitude]} 
+                        icon={icons.location}
+                      >
+                        <Popup className="rounded-lg shadow-lg">
+                          <strong className="text-green-600">Current location</strong>
+                          <br />
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <span>lat:</span> <span className="font-mono">{locationState.coords.latitude.toFixed(6)}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <span>lon:</span> <span className="font-mono">{locationState.coords.longitude.toFixed(6)}</span>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    )}
+                    
+                    {route.length > 0 && <Polyline positions={route} color="#22c55e" weight={5} opacity={0.7} />}
+                    {route.length > 0 && waypoints[1] && (
+                      <Marker position={waypoints[1]} icon={icons.destination} >
+                        <Popup className="rounded-lg shadow-lg">
+                          <strong className="text-green-600">Destination</strong>
+                          <br />
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <span>name:</span> <span>{destinationProps?.name ?? "N/A"}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <span>amenity:</span> <span>{destinationProps?.amenity ?? "N/A"}</span>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    )}
+                    
+                    {layersVisible && disasterPolyCoords &&
+                      disasterPolyCoords.map((feature, key) => (
+                        <Polygon
+                          key={key}
+                          positions={feature.geometry.coordinates[0].map((coord) => [coord[1], coord[0]])} 
+                          stroke={true}
+                          color={getAlertColor(feature.properties.alertlevel)}
+                          fill={true}
+                          fillColor={getAlertColor(feature.properties.alertlevel)}
+                          fillOpacity={0.2}      
+                        />
+                      ))}
+  
+                    {layersVisible && disasterTrackCoords &&
+                      disasterTrackCoords.map((feature, index) => (
+                        <React.Fragment key={index}>
                           <Polyline
                             key={index}
                             positions={feature.geometry.coordinates.map((coord) => [coord[1], coord[0]])} 
@@ -628,152 +707,213 @@ function HomePageClient() {
                                   position: e.latlng,
                                   properties: feature.properties,
                                 });
-                                setCurrentDisaster(feature.properties.disasterId); // You had this in the click handler too
+                                setCurrentDisaster(feature.properties.disasterId);
                               },
                             }}
                           />
                           {trackPopupInfo && trackPopupInfo.properties.eventid === feature.properties.eventid && (
-                            <Popup position={trackPopupInfo.position} closeOnClick={true}>
+                            <Popup position={trackPopupInfo.position} closeOnClick={true} className="rounded-lg shadow-lg">
                               <div className='flex flex-col gap-2 justify-center items-center'>
-                                <h3 className='text-red-400'>{`${trackPopupInfo?.properties?.severitydata?.severity??"N?A"} ${trackPopupInfo?.properties?.severitydata?.severityunit??"N?A"}`}</h3>
+                                <h3 className='text-red-500 font-semibold'>{`${trackPopupInfo?.properties?.severitydata?.severity ?? "N/A"} ${trackPopupInfo?.properties?.severitydata?.severityunit ?? "N/A"}`}</h3>
                                 <CloudRainWind color='red'/>
-                                {/* Add other properties you want to display */}
                               </div>
                             </Popup>
                           )}
                         </React.Fragment>
-                        ))}
-                        
-                    </MapContainer>
-                  )
-                }
-
-                {/* Overlay filter options */}
-                <div className="flex absolute top-4 left-20 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-80 p-2 rounded">
-                  {layers && Object.keys(layers).map((layer) => (
-                    <Button 
-                      key={layer}
-                      onClick={() => toggleLayer(layer)}
-                      className={`flex hover:text-white hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filterLayer === layer ? 'bg-green-400' : 'bg-white'}`}
-                    >
-                      <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
-                      <span>{layer.split("_")[1]}</span>
-                    </Button>
-                  ))}
-                </div>  
-              </Card>
-              
-              {
-                navInstructions &&
-                <NavigationInstructions 
-                route={route} 
-                instructions={navInstructions} 
-                userLocation={locationState.coords} 
-                distance = {navDistance}
-              />  
+                      ))}
+                  </MapContainer>
+                )
               }
-            </div>
-
-            <Card className='md:w-[50%] bg-gray-100 p-2'>
-              <CardHeader>
-                <CardTitle className='flex justify-center bg-orange-200 rounded-sm p-2'>
-                  {currentDisaster && currentDisaster.name}
-                </CardTitle>
-              </CardHeader>  
-              
-              <Card className='p-2'>
-                <CardHeader>
-                  <CardTitle className='text-center'>
-                    Emergency Contacts
-                  </CardTitle>
-                  <CardDescription className='text-center'>
-                    You seem to be in 
-                    <span className='text-green-400 font-semibold'>
-                      {emergencyContact && ` ${emergencyContact.location}`}
-                    </span>. For emergencies, call:
-                  </CardDescription>
-                </CardHeader>
-                
-                {emergencyContact && emergencyContact.phones && (
-                  <ul className='m-2'>
-                    {emergencyContact.phones.numbers.map((phoneNumber, index) => (
-                      <li key={index} className='flex gap-2 justify-center items-center'>
-                        <Phone />
-                        {phoneNumber}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Card>
-              
-              <Card className='flex gap-2 justify-items-start flex-wrap pl-6 pr-6 bg-white mt-2 p-2'>
-                <span>Make your way to any of the nearest destination below:</span>
+  
+              {/* Overlay filter options - Moved to top right with improved styling */}
+              <div className="flex absolute top-4 right-4 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-90 p-3 rounded-lg shadow-md">
                 {layers && Object.keys(layers).map((layer) => (
                   <Button 
                     key={layer}
                     onClick={() => toggleLayer(layer)}
-                    className={`flex hover:text-white bg-gray-200 hover:bg-green-600 justify-center items-center text-current gap-2 p-1 pl-2 pr-2 rounded-sm ${filterLayer === layer ? 'bg-green-400' : 'bg-white'}`}
+                    className={`flex hover:text-white hover:bg-green-500 justify-center items-center text-current gap-2 p-2 rounded-lg transition-all ${filterLayer === layer ? 'bg-green-400 text-white' : 'bg-white'}`}
+                    size="sm"
                   >
-                    <img src={layers[layer].featureIconURL} alt={layer} className="w-6 h-6" />
-                    <span>{layer.split("_")[1]}</span>
+                    <img src={layers[layer].featureIconURL} alt={layer} className="w-5 h-5" />
+                    <span className="text-xs font-medium">{layer.split("_")[1]}</span>
                   </Button>
                 ))}
+              </div>  
+            </Card>
+            
+            {/* Navigation instructions card */}
+            {navInstructions && (
+              <Card className="overflow-hidden border border-gray-200 shadow-md rounded-xl">
+                <CardHeader className="bg-green-50 py-3 px-4">
+                  <CardTitle className="text-sm font-medium text-green-800">Navigation Instructions</CardTitle>
+                </CardHeader>
+                <NavigationInstructions 
+                  route={route} 
+                  instructions={navInstructions} 
+                  userLocation={locationState.coords} 
+                  distance={navDistance}
+                />  
               </Card>
+            )}
+          </div>
+  
+          {/* Right column - Disaster info and options */}
+          <div className="md:w-1/2 flex flex-col gap-4">
+            <Card className='bg-white rounded-xl border border-gray-200 shadow-md overflow-hidden'>
+              <CardHeader className="border-b border-gray-100 pb-4">
+                {currentDisaster ? (
+                  <CardTitle className='text-center bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 font-bold text-green-800'>
+                    {currentDisaster.name}
+                  </CardTitle>
+                ) : (
+                  <CardTitle className='text-center bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-3 font-bold text-green-800'>
+                    Disaster Information
+                  </CardTitle>
+                )}
+                <div className='mt-4 flex items-center justify-between px-2'>
+                  <span className='text-sm text-gray-600 flex items-center gap-2'>
+                    <MapIcon size={16} className="text-green-500" /> 
+                    Show Map Boundaries
+                  </span>
+                  <Switch 
+                    className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-300"
+                    id="email" 
+                    checked={layersVisible}
+                    onCheckedChange={(checked:boolean) => {
+                      setLayersVisible(!layersVisible)
+                    }}
+                  />
+                </div>
+              </CardHeader>  
               
+              {/* Emergency contacts card */}
+              <div className="px-4 py-2">
+                <Card className='rounded-xl border border-gray-100 shadow-sm overflow-hidden'>
+                  <CardHeader className="bg-green-50 py-3">
+                    <CardTitle className='text-center text-base text-green-800'>
+                      <Phone className="inline-block mr-2 h-4 w-4" /> Emergency Contacts
+                    </CardTitle>
+                    <CardDescription className='text-center text-sm'>
+                      You seem to be in 
+                      <span className='text-green-500 font-semibold'>
+                        {emergencyContact && ` ${emergencyContact.location}`}
+                      </span>. For emergencies, call:
+                    </CardDescription>
+                  </CardHeader>
+                  
+                  <CardContent className="py-3">
+                    {emergencyContact && emergencyContact.phones && (
+                      <ul className='space-y-2'>
+                        {emergencyContact.phones.numbers.map((phoneNumber, index) => (
+                          <li key={index} className='flex gap-2 justify-center items-center p-2 bg-gray-50 rounded-lg'>
+                            <Phone size={16} className="text-green-500" />
+                            <span className="font-medium">{phoneNumber}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Nearby destinations card */}
+              <div className="px-4 py-2">
+                <Card className='rounded-xl border border-gray-100 shadow-sm overflow-hidden'>
+                  <CardHeader className="bg-green-50 py-3">
+                    <CardTitle className='text-center text-base text-green-800'>
+                      <Navigation className="inline-block mr-2 h-4 w-4" /> Nearby Safe Destinations
+                    </CardTitle>
+                  </CardHeader>
+                  
+                  <CardContent className="py-3">
+                    <p className="text-sm text-gray-600 mb-3">Make your way to any of these nearby destinations:</p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {layers && Object.keys(layers).map((layer) => (
+                        <Button 
+                          key={layer}
+                          onClick={() => toggleLayer(layer)}
+                          variant="outline"
+                          className={`flex hover:text-white hover:bg-green-500 transition-all justify-center items-center gap-2 p-2 rounded-lg border ${filterLayer === layer ? 'bg-green-400 text-white border-green-500' : 'bg-white border-gray-200'}`}
+                          size="sm"
+                        >
+                          <img src={layers[layer].featureIconURL} alt={layer} className="w-5 h-5" />
+                          <span className="text-xs font-medium">{layer.split("_")[1]}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Disaster details */}
               {currentDisaster && (
-                <div className='grid grid-cols-2 gap-2 m-5'>
-                  <div className='font-extrabold'>
-                    Disaster type
-                  </div>
-                  <div>
-                    {currentDisaster.eventType}
-                  </div>
-                  <div className='font-extrabold'>
-                    Date
-                  </div>
-                  <div>
-                    {new Date(currentDisaster.startDate).toLocaleDateString()}
-                  </div>
-                  {/* <div className='font-extrabold'>
-                    Impact Chance
-                  </div>
-                  <div>
-                    {currentDisaster.likelihood}
-                  </div> */}
-                  <div className='font-extrabold'>
-                    Intensity
-                  </div>
-                  <div>
-                    {/* <HorizontalProgressBar progress={currentDisaster.intensity} /> */}
-                    {`${currentDisaster.latestUpdate.severity} ${currentDisaster.latestUpdate.severityUnit}` }
-                  </div>
+                <div className="px-4 py-2">
+                  <Card className='rounded-xl border border-gray-100 shadow-sm overflow-hidden'>
+                    <CardHeader className="bg-green-50 py-3">
+                      <CardTitle className='text-center text-base text-green-800'>
+                        <AlertCircle className="inline-block mr-2 h-4 w-4" /> Disaster Details
+                      </CardTitle>
+                    </CardHeader>
+                    
+                    <CardContent className="py-3">
+                      <div className='grid grid-cols-2 gap-3'>
+                        <div className='font-medium text-gray-700 flex items-center'>
+                          <AlertTriangle size={16} className="mr-2 text-amber-500" />
+                          Disaster type
+                        </div>
+                        <div className='text-gray-900 font-semibold'>
+                          {currentDisaster.eventType}
+                        </div>
+                        
+                        <div className='font-medium text-gray-700 flex items-center'>
+                          <Calendar size={16} className="mr-2 text-green-500" />
+                          Date
+                        </div>
+                        <div className='text-gray-900 font-semibold'>
+                          {new Date(currentDisaster.startDate).toLocaleDateString()}
+                        </div>
+                        
+                        <div className='font-medium text-gray-700 flex items-center'>
+                          <Activity size={16} className="mr-2 text-red-500" />
+                          Intensity
+                        </div>
+                        <div className='text-gray-900 font-semibold'>
+                          {`${currentDisaster.latestUpdate.severity} ${currentDisaster.latestUpdate.severityUnit}` }
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
               
-              <div className='flex flex-col md:flex-row gap-2 justify-between p-5'>
-                <Button className='gap-2 w-full md:w-auto'>
-                  <Download />
-                  <span className='text-sm flex-wrap'>Download info</span>
-                </Button>
-                <Button className='flex gap-2'>
-                  <Download />
-                  <span className='text-sm flex-wrap'>Safety during cyclones</span>
+              {/* Action buttons */}
+              <div className='flex flex-colgap-3 w-full p-4'>
+                <Button className='flex gap-2 w-full sm:w-1/2 bg-green-400 hover:bg-green-500 rounded-lg'>
+                  <Shield size={16} />
+                  <span className='text-sm'> Learn Safety during cyclones</span>
                 </Button>
               </div>
               
-              <span className='mt-7 text-xl font-bold w-full flex justify-center'>
-                Impending disasters
-              </span>
-              
-              <LinkedEvents 
-                events={disasters?disasters: []} 
-                setCurrentDisaster={setCurrentDisaster} 
-                currentEvent={currentDisaster? currentDisaster: null }
-              />
+              {/* Impending disasters */}
+              <div className="mt-2 mb-4">
+                <h3 className='text-lg font-bold w-full flex justify-center items-center gap-2 text-green-800'>
+                  <AlertOctagon size={18} className="text-amber-500" />
+                  Impending disasters
+                </h3>
+                
+                <div className="px-4 mt-2">
+                  <LinkedEvents 
+                    events={disasters ? disasters : []} 
+                    setCurrentDisaster={setCurrentDisaster} 
+                    currentEvent={currentDisaster ? currentDisaster : null}
+                  />
+                </div>
+              </div>
             </Card>
-          </div>   
+          </div>
+        </div>   
       </div>
-   </div>
+    </div>
   );
 }
 
