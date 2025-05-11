@@ -6,19 +6,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 type Module = {
   id: string;
   title: string;
-  pdfUrl: string;
+  description: string;
+  text: string;
 };
 
 export default function PageContent() {
   const [modules, setModules] = useState<Module[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/modules') // Update with your actual endpoint
-      .then((res) => res.json())
+    fetch('http://localhost:3000/modules')
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
-        console.log('Modules from server:', data);
+        console.log('Modules from server:', data); // Log the data
         setModules(data);
-  })
+      })
       .catch((err) => console.error('Error fetching modules:', err));
   }, []);
 
@@ -41,9 +47,15 @@ export default function PageContent() {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-        {Array.isArray(modules) && modules.map((mod) => (
-  <ModuleCard key={mod.id} children={mod.title} />
+        {modules.map((mod) => (
+  <ModuleCard
+    key={mod.id}
+    title={mod.title}
+    description={mod.description}
+    text={mod.text}
+  />
 ))}
+
 
         </div>
       </CardContent>
@@ -51,12 +63,26 @@ export default function PageContent() {
   );
 }
 
-function ModuleCard({ title, pdfUrl }: { title: string; pdfUrl: string }) {
+function ModuleCard({
+  title,
+  description,
+  text
+}: {
+    title: string;
+    description: string;
+    text: string;
+  }) {
+    
   return (
     <div className="grid grid-cols-2 grid-rows-4 bg-white rounded-md row-span-4 col-span-2 gap-2 p-2">
-      <p className="row-start-1 row-end-3 col-span-2 font-semibold">{title}</p>
+      <img
+        src="/images/istockphoto-1146891343-1024x1024.jpg"
+        alt={title}
+        className="row-start-1 row-end-3 col-span-2 object-cover rounded-md"
+      />
+      <p className="row-start-3 row-end-4 col-span-2 font-semibold">{title}</p>
       <a
-        href={pdfUrl}
+        href={`data:text/plain;charset=utf-8,${encodeURIComponent(text)}`}
         target="_blank"
         rel="noopener noreferrer"
         className="p-2 text-center row-start-4 col-start-1 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
@@ -64,8 +90,8 @@ function ModuleCard({ title, pdfUrl }: { title: string; pdfUrl: string }) {
         View
       </a>
       <a
-        href={pdfUrl}
-        download
+        href={`data:text/plain;charset=utf-8,${encodeURIComponent(text)}`}
+        download={`${title}.txt`}
         className="p-2 text-center row-start-4 col-start-2 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
       >
         Download
@@ -73,3 +99,4 @@ function ModuleCard({ title, pdfUrl }: { title: string; pdfUrl: string }) {
     </div>
   );
 }
+
