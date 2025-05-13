@@ -8,8 +8,12 @@ import { useState } from 'react';
 import AppDrawer from './mobileLayout';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+
+  const user = window.localStorage.getItem('user');
+  const userData = user ? JSON.parse(user) : null;
+
   const pathname = usePathname();
-  const role = 1;
+  const role = userData?.userRole.id || 2; // Default to 0 if userData is null or role is not present
   const isLoginPage = pathname.startsWith('/login');
   const isRegistrationPage = pathname.startsWith('/registration');
   const shouldHideNav = isLoginPage || isRegistrationPage;
