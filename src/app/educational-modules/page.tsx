@@ -2,16 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { downloadPDF } from './downloadPDF';
 
-type Module = {
-  id: string;
+type EducationModule = {
+  id: number;
   title: string;
+  disasterType: string;
   description: string;
-  text: string;
+  sections: {
+    heading: string;
+    content: string;
+  }[];
 };
-
 export default function PageContent() {
-  const [modules, setModules] = useState<Module[]>([]);
+  const [module, setModules] = useState<EducationModule[]>([]);
 
   useEffect(() => {
     fetch('http://localhost:3000/modules')
@@ -47,14 +52,13 @@ export default function PageContent() {
         </div>
 
         <div className="grid grid-cols-4 gap-4">
-        {modules.map((mod) => (
-  <ModuleCard
-    key={mod.id}
-    title={mod.title}
-    description={mod.description}
-    text={mod.text}
-  />
-))}
+        {module.map((mod) => (
+        <ModuleCard
+          key={mod.id}
+          module={mod}
+        />
+
+      ))}
 
 
         </div>
@@ -63,39 +67,32 @@ export default function PageContent() {
   );
 }
 
-function ModuleCard({
-  title,
-  description,
-  text
-}: {
-    title: string;
-    description: string;
-    text: string;
-  }) {
+function ModuleCard(
+  module
+:
+any) {
     
   return (
     <div className="grid grid-cols-2 grid-rows-4 bg-white rounded-md row-span-4 col-span-2 gap-2 p-2">
       <img
         src="/images/istockphoto-1146891343-1024x1024.jpg"
-        alt={title}
+        alt={module.title}
         className="row-start-1 row-end-3 col-span-2 object-cover rounded-md"
       />
-      <p className="row-start-3 row-end-4 col-span-2 font-semibold">{title}</p>
+      <p className="row-start-3 row-end-4 col-span-2 font-semibold">{module.title}</p>
       <a
-        href={`data:text/plain;charset=utf-8,${encodeURIComponent(text)}`}
+        href={`/educational-modules/1`}
         target="_blank"
         rel="noopener noreferrer"
         className="p-2 text-center row-start-4 col-start-1 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
       >
         View
       </a>
-      <a
-        href={`data:text/plain;charset=utf-8,${encodeURIComponent(text)}`}
-        download={`${title}.txt`}
+      <Button
+       onClick={downloadPDF(module)} 
         className="p-2 text-center row-start-4 col-start-2 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
-      >
-        Download
-      </a>
+      > Download PDF
+      </Button>
     </div>
   );
 }
