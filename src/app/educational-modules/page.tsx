@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { downloadPDF } from './downloadPDF';
+import { useRouter } from 'next/navigation';
 
 type EducationModule = {
   id: number;
@@ -16,6 +17,7 @@ type EducationModule = {
   }[];
 };
 export default function PageContent() {
+
   const [module, setModules] = useState<EducationModule[]>([]);
 
   useEffect(() => {
@@ -69,10 +71,8 @@ export default function PageContent() {
   );
 }
 
-function ModuleCard(
-  module
-:
-any) {
+function ModuleCard({ module }: { module: EducationModule }): JSX.Element {
+  const router = useRouter();
     
   return (
     <div className="grid grid-cols-2 grid-rows-4 bg-white rounded-md row-span-4 col-span-2 gap-2 p-2">
@@ -83,7 +83,7 @@ any) {
       />
       <p className="row-start-3 row-end-4 col-span-2 font-semibold">{module.title}</p>
       <a
-        href={`/educational-modules/1`}
+        onClick={()=>router.push(`/educational-modules/${module.id}`)}
         target="_blank"
         rel="noopener noreferrer"
         className="p-2 text-center row-start-4 col-start-1 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
@@ -91,7 +91,7 @@ any) {
         View
       </a>
       <Button
-       onClick={downloadPDF(module)} 
+       onClick={()=>downloadPDF(module)} 
         className="p-2 text-center row-start-4 col-start-2 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
       > Download PDF
       </Button>

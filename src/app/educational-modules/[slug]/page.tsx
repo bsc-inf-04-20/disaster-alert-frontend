@@ -25,7 +25,7 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
   useState(() => {
     const fetchModule = async () => {
       try {
-        const res = await fetch(`http://localhost:4000/modules/${params.slug}`, {
+        const res = await fetch(`https://localhost:3000/modules/${params.slug}`, {
           cache: 'no-store',
         });
         
@@ -34,7 +34,11 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
         }
         
         const data = await res.json();
-        setModule(data);
+
+        const module = data.educationModules[0]
+
+        console.log('Fetched module:', module); // Log the fetched module
+        setModule(module);
       } catch (error) {
         console.error('Failed to fetch module:', error);
       } finally {
@@ -57,31 +61,7 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
   }
 
 
-  
-  // Helper function to wrap text
-  function wrapText(text: string, maxCharsPerLine: number): string[] {
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let currentLine = '';
-    
-    words.forEach(word => {
-      // Check if adding this word would exceed the max line length
-      if ((currentLine + ' ' + word).length > maxCharsPerLine && currentLine !== '') {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        // Add space only if not the first word in a line
-        currentLine += (currentLine ? ' ' : '') + word;
-      }
-    });
-    
-    // Don't forget the last line
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-    
-    return lines;
-  }
+
 
   return (
     <div className="flex flex-col p-6 space-y-6 items-center">
@@ -101,7 +81,7 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
       
       <div className="flex justify-end">
         <Button 
-          onClick={downloadPDF(module)} 
+          onClick={()=>downloadPDF(module)} 
           className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded"
         >
           Download PDF

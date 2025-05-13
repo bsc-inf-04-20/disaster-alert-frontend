@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 type EducationModule = {
   id: number;
@@ -112,3 +112,30 @@ type EducationModule = {
       alert('Failed to generate PDF. Please try again.');
     }
   };
+
+
+
+  // Helper function to wrap text
+    function wrapText(text: string, maxCharsPerLine: number): string[] {
+      const words = text.split(' ');
+      const lines: string[] = [];
+      let currentLine = '';
+      
+      words.forEach(word => {
+        // Check if adding this word would exceed the max line length
+        if ((currentLine + ' ' + word).length > maxCharsPerLine && currentLine !== '') {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          // Add space only if not the first word in a line
+          currentLine += (currentLine ? ' ' : '') + word;
+        }
+      });
+      
+      // Don't forget the last line
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+      
+      return lines;
+    }
