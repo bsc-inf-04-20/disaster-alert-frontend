@@ -34,7 +34,7 @@ const getAlertColor = (level:any) => {
 
 // Constants
 const GRAPHOPPER_API_KEY = "f0c392f0-13b6-4fc2-90f4-356817bfdfec";
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = "https://localhost:3000";
 const EMERGENCY_CONTACTS_URL = "http://localhost:4000/emergency-contacts";
 
 // Data fetching custom hook with state management
@@ -54,7 +54,7 @@ const useDataFetcher = (url, initialData = null, dependencies = []) => {
       
       try {
         setState(prev => ({ ...prev, isLoading: true }));
-        const response = await fetch(url);
+        const response = await fetch(url, {credentials: 'include'});
         
         if (!response.ok) {
           throw new Error(`Failed to fetch: ${response.status}`);
@@ -160,8 +160,10 @@ function HomePageClient() {
   async function generateTrialDisaster() {
     try {
       const response = await fetch(
-        "http://localhost:3000/disaster-discovery-tracker/disasters/test",
-        { method: "POST" }
+        "https://localhost:3000/disaster-discovery-tracker/disasters/test",
+        { method: "POST",
+          credentials: 'include'
+         }
       );
   
       if (!response.ok) {
@@ -185,8 +187,10 @@ function HomePageClient() {
     
     try {
       const response = await fetch(
-        "http://localhost:3000/disaster-discovery-tracker/disasters/test",
-        { method: "DELETE" }
+        "https://localhost:3000/disaster-discovery-tracker/disasters/test",
+        { method: "DELETE" ,
+          credentials: 'include'
+        },
       );
   
       if (!response.ok) {
@@ -214,7 +218,7 @@ function HomePageClient() {
   const { data: disasters, isLoading: disastersLoading, error: disastersError } = 
     useDataFetcher(
       locationState.coords ? 
-      `http://localhost:3000/disaster-discovery-tracker/disasters?longitude=${locationState.coords.longitude}&latitude=${locationState.coords.latitude}&includeHistory=true` : 
+      `https://localhost:3000/disaster-discovery-tracker/disasters?longitude=${locationState.coords.longitude}&latitude=${locationState.coords.latitude}&includeHistory=true` : 
       null,
       [],
       [locationState.coords]

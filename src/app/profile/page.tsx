@@ -89,7 +89,7 @@ const getProfile = async () => {
   const user = localStorage.getItem('user')
   if (user) {
     const parsedUser = JSON.parse(user)
-    fetch(`http://localhost:3000/auth/user/${parsedUser.id}`, 
+    fetch(`https://localhost:3000/auth/user/${parsedUser.id}`, 
       { credentials: 'include' }).catch((error) => {
         console.error('Error fetching user data:', error);
         toast.error('Error fetching user data. Please try again later.')
@@ -101,7 +101,7 @@ function ProfilePage() {
 
   const updateLanguagePreference = async (language:string, userId:number) => {
     try {
-      const response = await fetch(`http://localhost:3000/users/${userId}/languages/${language}`, {
+      const response = await fetch(`https://localhost:3000/users/${userId}/languages/${language}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ function ProfilePage() {
     console.log('Notification channel:', notificationChannel)
 
     try {
-      const response = await fetch(`http://localhost:3000/users/${userId}/notificationChannelType/${notificationChannel}`, {
+      const response = await fetch(`https://localhost:3000/users/${userId}/notificationChannelType/${notificationChannel}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ function ProfilePage() {
   const updateProfile = async (formData: { [key: string]: any }, userId:number) => {
     try {
       setUpdatingUser(true);
-      const response = await fetch(`http://localhost:3000/users/${userId}`, {
+      const response = await fetch(`https://localhost:3000/users/${userId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -209,7 +209,7 @@ function ProfilePage() {
   const updateUserLocation = async (address: string, latitude: number, longitude: number, type: string) => {
     if(user)
     try {
-      const response = await fetch(`http://localhost:3000/users/${user?.id}/locations`, {
+      const response = await fetch(`https://localhost:3000/users/${user?.id}/locations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
