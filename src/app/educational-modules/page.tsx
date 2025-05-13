@@ -14,7 +14,9 @@ export default function PageContent() {
   const [modules, setModules] = useState<Module[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/modules')
+    fetch('https://localhost:3000/modules', {
+      credentials: 'include', // Include credentials for same-origin requests
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);

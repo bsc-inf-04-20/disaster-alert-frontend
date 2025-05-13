@@ -31,9 +31,10 @@ export default function UploadModuleCard() {
     formData.append('title', title);
 
     try {
-      const response = await fetch('http://localhost:3000/modules/upload-json', {
+      const response = await fetch('https://localhost:3000/modules/upload-json', {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include credentials for same-origin requests
       });
 
       if (response.ok) {
