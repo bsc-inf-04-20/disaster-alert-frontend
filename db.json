@@ -1,4 +1,33 @@
+
 {
+  "modules": [
+    {
+      "id": 1,
+      "title": "Cyclone Preparedness and Community Resilience",
+      "disasterType": "Cyclone",
+      "description": "Understand tropical cyclones and how communities can prepare and stay resilient.",
+      "sections": [
+        {
+          "heading": "Understanding Cyclones",
+          "content": "Cyclones are powerful weather systems that form over warm ocean waters..."
+        },
+        {
+          "heading": "Pre-Cyclone Preparedness",
+          "content": "Communities should prepare by having emergency kits, reinforcing homes..."
+        },
+        {
+          "heading": "During a Cyclone",
+          "content": "Stay indoors, avoid using open flames, and keep away from windows..."
+        },
+        {
+          "heading": "After the Cyclone",
+          "content": "Be cautious of floodwaters and electrical hazards. Help neighbors and report damage..."
+        }
+      ]
+    }
+  ],
+  
+
   "disasters": [
     {
       "id": "1",
