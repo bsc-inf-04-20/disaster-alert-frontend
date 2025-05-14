@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast, Toaster } from 'sonner'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Shield, ShieldAlert } from 'lucide-react'
 // import {getToken, storeRole, storeToken} from "../../lib/utils"
 
 export default function LoginPage() {
@@ -85,21 +86,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/bgimages/glowingGlobe.jpg')" }}>\
+
+    <div className="absolute inset-0 bg-black bg-opacity-60 z-0" />
       <Toaster
       position="top-right"
       theme='system'
       />
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md z-10 bg-white/10 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl transition-transform hover:scale-[1.01]">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">
+          <div className="flex items-center justify-center mb-4">
+            <ShieldAlert className="text-green-400 animate-pulse" size={50} />
+          </div>
+          <CardTitle className="text-3xl text-center text-green-300 font-semibold tracking-wide">
             Disaster Alert System
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
+              <label htmlFor="email" className="text-sm font-medium text-green-300">
                 Email
               </label>
               <Input
@@ -108,11 +114,12 @@ export default function LoginPage() {
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="bg-black/20 text-white placeholder:text-gray-400"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">
+              <label htmlFor="password" className="text-sm font-medium text-green-300">
                 Password
               </label>
               <Input
@@ -121,6 +128,7 @@ export default function LoginPage() {
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="bg-black/20 text-white placeholder:text-gray-400"
                 required
               />
             </div>
@@ -129,22 +137,26 @@ export default function LoginPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <Button 
-              type="submit" 
-              className="w-full"
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 text-white font-medium shadow-md transition-all"
               disabled={isLoading}
             >
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
-            <Button 
-            className='justify-self-center text-blue-400'
-            onClick={() => router.push("/registration")}
-            variant='ghost'
-            >You don't have an account? Register
+            <Button
+              type="button"
+              onClick={() => router.push("/registration")}
+              variant="ghost"
+              className="text-white hover:underline text-sm"
+            >
+              You don't have an account? Register
             </Button>
           </form>
         </CardContent>
       </Card>
+
+
     </div>
   )
 } 

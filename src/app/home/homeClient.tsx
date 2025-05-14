@@ -21,6 +21,7 @@ import * as turf from "@turf/turf";
 import { getIconUrl } from '../utils/ImageProgressing';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
+import { downloadPDF } from '../educational-modules/downloadPDF';
 
 
 const getAlertColor = (level:any) => {
@@ -152,6 +153,28 @@ function HomePageClient() {
   const [disasterPolyCoords, setDisasterPolyCoords] = useState([]);
   const [disasterTrackCoords, setDisasterTrackCoords] = useState([]);
   const [layersVisible, setLayersVisible] = useState(true);
+
+
+  const fetchModule = async () => {
+      try {
+        const res = await fetch(`https://localhost:3000/modules/types/${currentDisaster.eventType}`, {
+          cache: 'no-store',
+        });
+        
+        if (!res.ok) {
+          throw new Error('Module not found');
+        }
+        
+        const data = await res.json();
+
+        downloadPDF(data.module)
+       
+      }
+      catch (error) {
+        console.error('Failed to fetch module:', error);
+        toast.error(`Error: ${error}`)
+      } 
+    };
 
   //pop up that shows when the user clicks on the disaster track
   const [trackPopupInfo, setTrackPopupInfo] = useState(null);
@@ -892,7 +915,9 @@ function HomePageClient() {
               
               {/* Action buttons */}
               <div className='flex flex-colgap-3 w-full p-4'>
-                <Button className='flex gap-2 w-full sm:w-1/2 bg-green-400 hover:bg-green-500 rounded-lg'>
+                <Button 
+                onClick={()=>fetchModule()}
+                className='flex gap-2 w-full sm:w-1/2 bg-green-400 hover:bg-green-500 rounded-lg'>
                   <Shield size={16} />
                   <span className='text-sm'> Learn Safety during cyclones</span>
                 </Button>
