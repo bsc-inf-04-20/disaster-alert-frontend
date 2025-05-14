@@ -91,7 +91,7 @@ function ModuleCard({ module }: { module: EducationModule }): JSX.Element {
         View
       </a>
       <Button
-       onClick={()=>downloadPDF(module)} 
+       onClick={()=>downloadPDF(module.content)} 
         className="p-2 text-center row-start-4 col-start-2 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
       > Download PDF
       </Button>
