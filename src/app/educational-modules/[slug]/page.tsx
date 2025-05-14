@@ -35,7 +35,7 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
         
         const data = await res.json();
 
-        const module = data.educationModules[0]
+        const module = data
 
         console.log('Fetched module:', module); // Log the fetched module
         setModule(module);
