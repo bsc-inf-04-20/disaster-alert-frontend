@@ -23,7 +23,7 @@ import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 
 
-const getAlertColor = (level:any) => {
+export const getAlertColor = (level:any) => {
   switch(level) {
     case 'Red': return '#ff0000';
     case 'Orange': return '#ff9900';
