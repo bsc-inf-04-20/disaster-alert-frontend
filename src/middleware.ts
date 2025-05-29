@@ -21,9 +21,9 @@ export function middleware(request: NextRequest) {
 
   // Define your protected routes based on roles
   const protectedRoutes = {
-    // '/home': [1, 2],
+     '/home': [1, 2],
     '/profile': [1, 2],
-   // '/history': [1, 2],
+    '/history': [1, 2],
     '/admin-page': [1],
     '/educational-modules': [1, 2],
   }
@@ -57,10 +57,10 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // '/home',
+     '/home',
     '/profile',
     '/admin-page',
     '/educational-modules',
-    //'/history'
+    '/history'
   ],
 }
