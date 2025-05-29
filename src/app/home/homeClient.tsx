@@ -26,7 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getShapeNames } from '../utils/districtLocatingFunctions';
 
 
-const getAlertColor = (level:any) => {
+export const getAlertColor = (level:any) => {
   switch(level) {
     case 'Red': return '#ff0000';
     case 'Orange': return '#ff9900';
