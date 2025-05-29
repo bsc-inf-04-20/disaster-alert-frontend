@@ -62,6 +62,5 @@ export const config = {
     '/admin-page',
     '/educational-modules',
     '/history'
-    '/history'
   ],
 }
