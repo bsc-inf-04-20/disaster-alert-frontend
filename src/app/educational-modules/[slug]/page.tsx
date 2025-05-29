@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { useState } from "react";
 import { downloadPDF } from "../downloadPDF";
+import { pauseSpeech, resumeSpeech, stopSpeech, TextToSpeech } from "../textTOSpeech"
+import { Pause, Play } from "lucide-react";
 
 type EducationModule = {
   id: number;
@@ -20,6 +22,30 @@ type EducationModule = {
 export default function ModulePage({ params }: { params: { slug: string } }) {
   const [module, setModule] = useState<EducationModule | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [isPaused, setIsPaused] = useState(false);
+
+   const handlePlay = () => {
+    if (!module) return;
+    const text = module.sections.map(section => section.content).join(' ');
+    TextToSpeech(text);
+    setIsPaused(false);
+  };
+
+  const handlePauseResume = () => {
+    if (isPaused) {
+      resumeSpeech();
+      setIsPaused(false);
+    } else {
+      pauseSpeech();
+      setIsPaused(true);
+    }
+  };
+
+  const handleStop = () => {
+    stopSpeech();
+    setIsPaused(false);
+  };
 
   // Fetch the module data when component mounts
   useState(() => {
@@ -60,16 +86,17 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
     return notFound();
   }
 
-
-
-
   return (
     <div className="flex flex-col p-6 space-y-6 items-center">
       <div className="bg-green-300 flex flex-col ml-6 items-center w-full max-w-[1050px] p-6 rounded-lg">
         <h2 className="text-3xl font-semibold mb-4"> {module.disasterType}</h2>
         <p className=" mb-6  font-semibold text-xl">{module.description}</p>
       </div>
-      
+      <div className=" flex items-left gap-3">
+        <Button className="ml-auto bg-green-400 text-white" onClick={handlePlay}>Read aloud</Button>
+      <Button className="ml-auto bg-green-400 text-white"onClick={handlePauseResume}>{isPaused ? <Play /> : <Pause/>}</Button>
+      <Button className="ml-auto bg-green-400 text-white"onClick={handleStop}>Stop</Button>
+      </div>
       <Card className="bg-gray-100 w-full max-w-[1000px] p-6 mx-auto">
         {module.sections.map((section, index) => (
           <div key={index} className="mb-6">
