@@ -35,7 +35,30 @@ const getAlertColor = (level:any) => {
   }
 };
 
-// Constants
+
+  const updateUserLocation = async (latitude: number, longitude: number) => {
+    const user =window.localStorage.getItem('user')
+    if(user)
+    try {
+      const response = await fetch(`https://localhost:3000/users/${user?.id}/locations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ address:"Current location", latitude, longitude, type:'last' }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update location');
+      }
+
+      toast.success('Location updated successfully!');
+    } catch (error) {
+      console.error('Error updating user location:', error);
+      toast.error('Error updating user location. Please try again later.');
+    }
+  };
+
+
 const API_BASE_URL = "https://localhost:3000";
 const EMERGENCY_CONTACTS_URL = "http://localhost:4000/emergency-contacts";
 
@@ -48,7 +71,7 @@ const useDataFetcher = (url, initialData = null, dependencies = []) => {
 
   useEffect(() => {
     if (!url) {
-      // If no URL, immediately set to not loading with initial data
+
       setState({
         data: initialData,
         isLoading: false,
@@ -162,6 +185,13 @@ function HomePageClient() {
   const [districtNames, setDistrictNames] = useState<string[]>()
   const [selectedDistrict, setSelectedDistrict] = useState<string>("")
 
+  useEffect(()=>{
+
+    if(locationState.coords){
+      updateUserLocation(locationState.coords.latitude, locationState.coords.longitude)
+    }
+  }, [locationState.coords])
+
 useEffect(() => {
   const fetchDistricts = async () => {
     try {
@@ -179,7 +209,7 @@ useEffect(() => {
   const shouldUseDistrict = selectedDistrict !== "";
   const shouldUseLocation = !shouldUseDistrict && locationState.coords;
 
-  // District-based fetch (only when district is selected)
+  // District-based fetch 
   const {
     data: disastersByDistrict,
     isLoading: loadingByDistrict,
@@ -274,23 +304,22 @@ const {
       }
   
       const data = await response.json();
-      // Only toast success after we have a good response
+
       toast.success("Successfully deleted trial disasters! Refresh to see changes.");
       return data;
     } catch (error) {
       console.error("Fetch operation failed:", error);
       toast.error("Failed to delete trial disasters");
-      // rethrow if you want callers to handle it too
+
       throw error;
     }
   }
 
-  // Data fetching with custom hooks for better organization
+
   const { data: layers, isLoading: layersLoading, error: layersError } = 
     useDataFetcher(`${API_BASE_URL}/features/all`, {});
 
 
-  // Use Geolocation hook - optimized to reduce rerenders
   const { coords: geoCoords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({ 
     positionOptions: { enableHighAccuracy: true },
     userDecisionTimeout: 5000,
@@ -300,7 +329,7 @@ const {
   // Fetch emergency contact based on location
   const [emergencyContact, setEmergencyContact] = useState(null);
 
-  // Find emergency contacts based on location - memoized to prevent unnecessary recalculations
+  // Find emergency contacts based on location
   const findEmergencyContacts = useCallback(async (filePath, longitude, latitude) => {
     try {
       const geoJsonResponse = await fetch(filePath);
@@ -390,12 +419,12 @@ const {
     }
   }, []);
 
-  // Toggle layer selection with memoization to prevent re-renders
+
   const toggleLayer = useCallback((targetLayer) => {
     setFilterLayer(current => current === targetLayer ? "" : targetLayer);
   }, []);
 
-  // Fetch route based on waypoints - memoized to prevent unnecessary recalculations
+  // Fetch route based on waypoints
   const getRoute = useCallback(async () => {
     if (waypoints.length < 2) return;
     
@@ -464,7 +493,7 @@ const {
     }
   }, [locationState.coords, filterLayer, currentDisaster]);
 
-  // Get disaster geometry with caching to prevent redundant fetches
+  // Get disaster geometry with caching 
   const fetchDisasterGeometry = useCallback(async (disasterId:string) => {
     if (!disasterId) return null;
     
@@ -506,7 +535,7 @@ const {
           // First click: set start and destination at once
           setWaypoints([[locationState.coords.latitude, locationState.coords.longitude], [e.latlng.lat, e.latlng.lng]]);
         } else {
-          // Subsequent clicks: update only the destination
+          // S For subsequent clicks, only update only the destination
           setWaypoints(([start]) => [start, [e.latlng.lat, e.latlng.lng]]);
         }
       },
@@ -588,7 +617,7 @@ const {
     }
   }, [disasterPolyCoords]);
 
-// Clean data source selection
+
 const disasters = shouldUseDistrict ? disastersByDistrict : disastersByLocation;
 const disastersLoading = shouldUseDistrict ? loadingByDistrict : loadingByLocation;
 const disastersError = shouldUseDistrict ? errorByDistrict : errorByLocation;
@@ -644,7 +673,7 @@ useEffect(() => {
         theme='system'
       />
       <div className='max-w-6xl mx-auto'>
-        {/* Page Header - Modernized with subtle shadow and rounded corners */}
+        {/* Page Header  */}
         <div className="bg-gradient-to-r from-green-400 to-green-500 rounded-2xl shadow-lg mb-6 p-6 flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
@@ -813,7 +842,7 @@ useEffect(() => {
                 )
               }
   
-              {/* Overlay filter options - Moved to top right with improved styling */}
+              {/* Overlay filter options */}
               <div className="flex absolute top-4 right-4 z-[1000] md:hidden gap-2 flex-wrap bg-white bg-opacity-90 p-3 rounded-lg shadow-md">
                 {layers && Object.keys(layers).map((layer) => (
                   <Button 
