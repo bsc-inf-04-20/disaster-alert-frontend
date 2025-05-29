@@ -12,6 +12,20 @@ import Fuse from 'fuse.js';
 import { getAlertColor } from '../home/homeClient';
 import L from 'leaflet';
 import { getDisasterType } from '../utils/textFormatting';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from "recharts";
 
 
 const locationIcon= L.icon({
@@ -45,6 +59,7 @@ export default function Page() {
   const [selectedDisasterPolyCoords, setSelectedDisasterPolyCoords] = useState<any[]>([]);
   const [selectedDisasterTrackCoords, setSelectedDisasterTrackCoords] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [disasterCounts, setDisasterCounts] = useState<any>([])
   const mapRef = useRef<L.Map | null>(null);
 
   // Initialize geolocation
@@ -60,20 +75,40 @@ export default function Page() {
   }, []);
 
   // Fetch disasters list
+
   useEffect(() => {
     if (!location) return;
+
     const fetchDisasters = async () => {
       try {
         const res = await fetch(
           `https://localhost:3000/disaster-discovery-tracker/disasters?latitude=${location.latitude}&longitude=${location.longitude}&includeHistory=true`
         );
+
+        if (!res.ok) throw new Error("Failed to fetch disasters");
+
         const data = await res.json();
-        if (!res.ok) throw new Error('Failed to fetch disasters');
         setDisasters(data);
+
+        // Count occurrences of each eventType
+        const counts = data.reduce((acc, item) => {
+          acc[item.eventType] = (acc[item.eventType] || 0) + 1;
+          return acc;
+        }, {});
+
+        const groups = Object.entries(counts).map(([type, count]) => ({
+          disaster_type:getDisasterType(type),   
+          count:count,  
+        }));
+
+        setDisasterCounts(groups)
+
+        console.log("Disaster counts:", groups);
       } catch (err) {
-        toast.error('Failed to fetch disasters');
+        toast.error("Failed to fetch disasters");
       }
     };
+
     fetchDisasters();
   }, [location]);
 
@@ -116,7 +151,7 @@ export default function Page() {
 
   return (
     <>
-      <Card className="space-y-10 h-screen p-4">
+      <Card className="space-y-4 h-screen p-4 flex flex-col items-center">
         <CardHeader className="w-full bg-green-400 rounded-md mb-4 mt-4">
           <CardTitle className="text-xl font-extrabold text-center">
             History
@@ -125,16 +160,23 @@ export default function Page() {
             Understand the disaster history of your location
           </CardDescription>
         </CardHeader>
-        <div className="relative mx-auto max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-          <input
-            type="text"
-            placeholder="Search disasters..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 rounded-md border bg-gray-200"
-          />
-        </div>
+
+        <Tabs defaultValue="Disasters" className="w-3/4 flex flex-col items-center mt-6">
+           <TabsList className='flex gap-8 items-center w-full mb-10'>
+              <TabsTrigger className='w-96' value="Disasters">Disasters</TabsTrigger>
+              <TabsTrigger className='w-96'value="Disaster Analytics">Disaster Analytics</TabsTrigger>
+            </TabsList>
+            <TabsContent className="space-y-6 "value="Disasters">
+             <div className="relative mx-auto max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+             <input
+                type="text"
+                placeholder="Search disasters..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 rounded-md border bg-gray-200"
+              />
+             </div>
 
         <div className="space-y-6">
           {filteredDisasters.map((d, idx) => (
@@ -157,7 +199,64 @@ export default function Page() {
             </Card>
           ))}
         </div>
+            </TabsContent>
+          <TabsContent className="space-y-6 "value="Disaster Analytics">
+          {
+            disasterCounts &&
+            <div className='flex'>
+                <span>This is frequency of the disaster</span>
+                 <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={disasterCounts}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="disaster_type" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="count" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={disasterCounts}
+                      dataKey="count"
+                      nameKey="disaster_type"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      label={({ percent, name }) =>
+                        `${name} (${(percent * 100).toFixed(0)}%)`
+                      }
+                    >
+                      {disasterCounts.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={[
+                            "#8884d8",
+                            "#82ca9d",
+                            "#ffc658",
+                            "#ff8042",
+                            "#8dd1e1",
+                            "#d0ed57",
+                            "#a4de6c"
+                          ][index % 7]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+
+            </div>
+          }
+          </TabsContent>
+        </Tabs>
       </Card>
+      
 
       {selectedDisaster && (
         <Dialog open={disasterDialogOpen} onOpenChange={setDisasterDialogOpen}>
