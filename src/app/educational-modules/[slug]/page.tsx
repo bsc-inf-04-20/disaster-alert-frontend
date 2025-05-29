@@ -6,6 +6,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { useState } from "react";
 import { downloadPDF } from "../downloadPDF";
 import { pauseSpeech, resumeSpeech, stopSpeech, TextToSpeech } from "../textTOSpeech"
+import { Pause, Play } from "lucide-react";
 
 type EducationModule = {
   id: number;
@@ -91,10 +92,10 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
         <h2 className="text-3xl font-semibold mb-4"> {module.disasterType}</h2>
         <p className=" mb-6  font-semibold text-xl">{module.description}</p>
       </div>
-      <div className="flex-col items-left">
-        <Button className="ml-auto bg-green-400 text-white w-1/5" onClick={handlePlay}>Play</Button>
-      <Button className="ml-auto bg-green-400 text-white w-1/5"onClick={handlePauseResume}>{isPaused ? 'Resume' : 'Pause'}</Button>
-      <Button className="ml-auto bg-green-400 text-white w-1/5"onClick={handleStop}>Stop</Button>
+      <div className=" flex items-left gap-3">
+        <Button className="ml-auto bg-green-400 text-white" onClick={handlePlay}>Read aloud</Button>
+      <Button className="ml-auto bg-green-400 text-white"onClick={handlePauseResume}>{isPaused ? <Play /> : <Pause/>}</Button>
+      <Button className="ml-auto bg-green-400 text-white"onClick={handleStop}>Stop</Button>
       </div>
       <Card className="bg-gray-100 w-full max-w-[1000px] p-6 mx-auto">
         {module.sections.map((section, index) => (
