@@ -22,6 +22,8 @@ import { getIconUrl } from '../utils/ImageProgressing';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { downloadPDF } from '../educational-modules/downloadPDF';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getShapeNames } from '../utils/districtLocatingFunctions';
 
 
 const getAlertColor = (level:any) => {
@@ -37,23 +39,29 @@ const getAlertColor = (level:any) => {
 const API_BASE_URL = "https://localhost:3000";
 const EMERGENCY_CONTACTS_URL = "http://localhost:4000/emergency-contacts";
 
-// Data fetching custom hook with state management
 const useDataFetcher = (url, initialData = null, dependencies = []) => {
   const [state, setState] = useState({
     data: initialData,
-    isLoading: true,
+    isLoading: false, // Start with false, only set true when actually fetching
     error: null
   });
 
-  console.log(`the URL here is: ${url}`)
-
   useEffect(() => {
+    if (!url) {
+      // If no URL, immediately set to not loading with initial data
+      setState({
+        data: initialData,
+        isLoading: false,
+        error: null
+      });
+      return;
+    }
+
     let isMounted = true;
+    
     const fetchData = async () => {
-      if (!url) return;
-      
       try {
-        setState(prev => ({ ...prev, isLoading: true }));
+        setState(prev => ({ ...prev, isLoading: true, error: null }));
         const response = await fetch(url, {credentials: 'include'});
         
         if (!response.ok) {
@@ -77,7 +85,6 @@ const useDataFetcher = (url, initialData = null, dependencies = []) => {
             isLoading: false,
             error: error.message
           });
-          toast.error(`Failed to fetch data: ${error.message}`);
         }
       }
     };
@@ -87,7 +94,7 @@ const useDataFetcher = (url, initialData = null, dependencies = []) => {
     return () => {
       isMounted = false;
     };
-  }, dependencies);
+  }, [url, ...dependencies]);
 
   return state;
 };
@@ -152,6 +159,52 @@ function HomePageClient() {
   const [disasterPolyCoords, setDisasterPolyCoords] = useState([]);
   const [disasterTrackCoords, setDisasterTrackCoords] = useState([]);
   const [layersVisible, setLayersVisible] = useState(true);
+  const [districtNames, setDistrictNames] = useState<string[]>()
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("")
+
+useEffect(() => {
+  const fetchDistricts = async () => {
+    try {
+      const districts = await getShapeNames();
+      setDistrictNames(districts);
+    } catch (error) {
+      console.error("Failed to load district names:", error);
+    }
+  };
+
+  fetchDistricts();
+}, []);
+
+  // Determine which data source should be active
+  const shouldUseDistrict = selectedDistrict !== "";
+  const shouldUseLocation = !shouldUseDistrict && locationState.coords;
+
+  // District-based fetch (only when district is selected)
+  const {
+    data: disastersByDistrict,
+    isLoading: loadingByDistrict,
+    error: errorByDistrict
+  } = useDataFetcher(
+    shouldUseDistrict 
+      ? `https://localhost:3000/disaster-discovery-tracker/disasters/districts/${selectedDistrict}`
+      : null,
+    [],
+    [selectedDistrict, shouldUseDistrict]
+  );
+
+
+const {
+    data: disastersByLocation,
+    isLoading: loadingByLocation,
+    error: errorByLocation
+  } = useDataFetcher(
+    shouldUseLocation
+      ? `https://localhost:3000/disaster-discovery-tracker/disasters?longitude=${locationState.coords.longitude}&latitude=${locationState.coords.latitude}&includeHistory=true`
+      : null,
+    [],
+    [locationState.coords, shouldUseLocation]
+  );
+
 
 
   const fetchModule = async () => {
@@ -236,15 +289,6 @@ function HomePageClient() {
   const { data: layers, isLoading: layersLoading, error: layersError } = 
     useDataFetcher(`${API_BASE_URL}/features/all`, {});
 
-  // Fetch disasters only when coordinates are available 
-  const { data: disasters, isLoading: disastersLoading, error: disastersError } = 
-    useDataFetcher(
-      locationState.coords ? 
-      `https://localhost:3000/disaster-discovery-tracker/disasters?longitude=${locationState.coords.longitude}&latitude=${locationState.coords.latitude}&includeHistory=true` : 
-      null,
-      [],
-      [locationState.coords]
-    );
 
   // Use Geolocation hook - optimized to reduce rerenders
   const { coords: geoCoords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({ 
@@ -470,13 +514,6 @@ function HomePageClient() {
     return null;
   }, [locationState.coords, waypoints.length]);
 
-  // Set current disaster when disasters change
-  useEffect(() => {
-    if (disasters && disasters.length > 0 && !currentDisaster) {
-      setCurrentDisaster(disasters[0]);
-    }
-  }, [disasters, currentDisaster]);
-
   // Update location state from geolocated hook
   useEffect(() => {
     if (geoCoords) {
@@ -551,9 +588,34 @@ function HomePageClient() {
     }
   }, [disasterPolyCoords]);
 
-  // Loading state determination - more comprehensive and prevents false loading states
-  const isLoading = layersLoading || disastersLoading || locationState.isLoading || 
-                   (disasters && disasters.length > 0 && !currentDisaster);
+// Clean data source selection
+const disasters = shouldUseDistrict ? disastersByDistrict : disastersByLocation;
+const disastersLoading = shouldUseDistrict ? loadingByDistrict : loadingByLocation;
+const disastersError = shouldUseDistrict ? errorByDistrict : errorByLocation;
+
+// Improved loading state - only show loading when actually fetching
+const isLoading = layersLoading || locationState.isLoading || disastersLoading;
+
+// Enhanced current disaster setting with better logic
+useEffect(() => {
+  if (disasters && disasters.length > 0) {
+    // If no current disaster or current disaster not in new list, set first one
+    if (!currentDisaster || !disasters.find(d => d.disasterId === currentDisaster.disasterId)) {
+      console.log(`Setting current disaster from ${disasters.length} disasters`);
+      setCurrentDisaster(disasters[0]);
+    }
+  } else if (disasters && disasters.length === 0) {
+    // If disasters array is empty, clear current disaster
+    setCurrentDisaster(null);
+  }
+  // If disasters is null/undefined, don't change currentDisaster (still loading or error)
+}, [disasters]);
+
+// Optional: Add effect to clear current disaster when switching modes
+useEffect(() => {
+  // Clear current disaster when switching between district and location mode
+  setCurrentDisaster(null);
+}, [selectedDistrict]);
 
   if (isLoading) {
     return (
@@ -702,7 +764,7 @@ function HomePageClient() {
                       </Marker>
                     )}
                     
-                    {layersVisible && disasterPolyCoords &&
+                    {currentDisaster && layersVisible && disasterPolyCoords &&
                       disasterPolyCoords.map((feature, key) => (
                         <Polygon
                           key={key}
@@ -715,7 +777,7 @@ function HomePageClient() {
                         />
                       ))}
   
-                    {layersVisible && disasterTrackCoords &&
+                    {currentDisaster && layersVisible && disasterTrackCoords &&
                       disasterTrackCoords.map((feature, index) => (
                         <React.Fragment key={index}>
                           <Polyline
@@ -733,7 +795,7 @@ function HomePageClient() {
                                   position: e.latlng,
                                   properties: feature.properties,
                                 });
-                                setCurrentDisaster(feature.properties.disasterId);
+                                // setCurrentDisaster(feature.properties.disasterId);
                               },
                             }}
                           />
@@ -913,7 +975,7 @@ function HomePageClient() {
               )}
               
               {/* Action buttons */}
-              <div className='flex flex-colgap-3 w-full p-4'>
+              <div className='flex flex-col gap-3 w-full p-4 items-center justify-center'>
                 <Button 
                 onClick={()=>fetchModule()}
                 className='flex gap-2 w-full sm:w-1/2 bg-green-400 hover:bg-green-500 rounded-lg'>
@@ -924,18 +986,50 @@ function HomePageClient() {
               
               {/* Impending disasters */}
               <div className="mt-2 mb-4">
-                <h3 className='text-lg font-bold w-full flex justify-center items-center gap-2 text-green-800'>
-                  <AlertOctagon size={18} className="text-amber-500" />
-                  Impending disasters
-                </h3>
-                
-                <div className="px-4 mt-2">
-                  <LinkedEvents 
-                    events={disasters ? disasters : []} 
-                    setCurrentDisaster={setCurrentDisaster} 
-                    currentEvent={currentDisaster ? currentDisaster : null}
-                  />
+                {
+                  disasters &&
+                  <>
+                    <h3 className='text-lg font-bold w-full flex justify-center items-center gap-2 text-green-800'>
+                    <AlertOctagon size={18} className="text-amber-500" />
+                    Impending disasters
+                    </h3>
+                    <div className="px-4 mt-2">
+                      <LinkedEvents 
+                        events={disasters ? disasters : []} 
+                        setCurrentDisaster={setCurrentDisaster} 
+                        currentEvent={currentDisaster ? currentDisaster : null}
+                      />
+                    </div>
+                  </>
+                }
+                {
+                  districtNames && 
+                  <div className="flex flex-col items-center justify-center m-4 w-full">
+                  <span className='text-sm text-gray-400 mb-3'>Explore disasters affecting particular districts</span>
+                  <Select 
+                    value={selectedDistrict || "use-location"} 
+                    onValueChange={(value) => setSelectedDistrict(value === "use-location" ? "" : value)}
+                  >
+                    <SelectTrigger className="w-[300px]">
+                      <SelectValue placeholder="Select a district" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem 
+                      className='flex justify-center'
+                      value="use-location"  
+                      >Use My Location</SelectItem>
+                      {districtNames?.map((district) => (
+                        <SelectItem 
+                        className='flex justify-center '
+                        key={district} 
+                        value={district}>
+                          {district}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+                }
               </div>
             </Card>
           </div>

@@ -13,7 +13,7 @@ type Event ={
 const EventCard = ({ event, setCurrentDisaster, currentEvent }: { event: any, setCurrentDisaster: Function, currentEvent:Event }) => {
   return (
     <motion.div
-      className={`p-4 rounded-lg shadow-lg border-l-4 w-full text-center  ${ currentEvent.name==event.name?'bg-blue-200 ':'bg-white'}`}
+      className={`p-4 rounded-lg shadow-lg border-l-4 w-full text-center  ${ currentEvent?.name??"N/A"==event.name?'bg-blue-200 ':'bg-white'}`}
       whileHover={{ scale: 1.05 }}
       onClick={()=>setCurrentDisaster(event)}
     >
