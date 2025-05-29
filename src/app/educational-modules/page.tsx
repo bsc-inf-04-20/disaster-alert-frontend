@@ -17,85 +17,91 @@ type EducationModule = {
   }[];
 };
 export default function PageContent() {
-
   const [module, setModules] = useState<EducationModule[]>([]);
 
   useEffect(() => {
     fetch('https://localhost:3000/modules', {
-      credentials: 'include', // Include credentials for same-origin requests
+      credentials: 'include',
     })
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
       })
-      .then((data) => {
-        console.log('Modules from server:', data); // Log the data
-        setModules(data);
-      })
+      .then((data) => setModules(data))
       .catch((err) => console.error('Error fetching modules:', err));
   }, []);
 
   return (
-    <Card className="flex flex-col gap-6 text-sm rounded-none ml-0 mr-0 pl-0">
-      <CardContent className="flex flex-col gap-4 w-full">
-        <CardHeader className="w-full bg-green-400">
-          <CardTitle className="w-full text-3xl text-center">Your Educational Modules</CardTitle>
-          <CardDescription className="text-xl text-black text-center">
-            "Disasters Happen, Will You Be Ready?!"
-          </CardDescription>
-        </CardHeader>
+    <div className="w-full px-4 py-6">
+      <div className="w-full max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="rounded-lg shadow-md bg-gradient-to-r from-green-400 to-green-500 text-white p-6 mb-6 text-center">
+          <h1 className="text-3xl font-bold">Your Educational Modules</h1>
+          <p className="text-lg mt-2">"Disasters Happen, Will You Be Ready?!"</p>
+        </div>
 
-        <div className="flex justify-center gap-4 h-[50vh] w-full">
+        {/* Banner Image */}
+        <div className="relative mb-6 rounded-xl overflow-hidden h-[40vh]">
           <img
-            src="images/istockphoto-1146891343-1024x1024.jpg"
-            alt="educational module"
-            className="h-full w-full object-cover rounded-md"
+            src="/bgimages/glowingGlobe.jpg"
+            alt="Educational Module"
+            className="w-full h-full object-cover"
           />
+          {/* Dark overlay */}
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center text-white text-center px-4">
+            <h2 className="text-2xl sm:text-3xl font-semibold">Preparedness Begins With Knowledge</h2>
+            <p className="text-md sm:text-lg mt-2 max-w-xl">
+              Learn how to respond to floods, fires, earthquakes, and more — one module at a time.
+            </p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-4">
-        {module.map((mod) => (
-        <ModuleCard
-          key={mod.id}
-          module={mod}
-        />
-
-      ))}
-
-
+        {/* Modules Grid */}
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {module.map((mod) => (
+            <ModuleCard key={mod.id} module={mod} />
+          ))}
         </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ModuleCard({ module }: { module: EducationModule }): JSX.Element {
-  const router = useRouter();
-    
-  return (
-    <div className="grid grid-cols-2 grid-rows-4 bg-white rounded-md row-span-4 col-span-2 gap-2 p-2">
-      <img
-        src="/images/istockphoto-1146891343-1024x1024.jpg"
-        alt={module.title}
-        className="row-start-1 row-end-3 col-span-2 object-cover rounded-md"
-      />
-      <p className="row-start-3 row-end-4 col-span-2 font-semibold">{module.title}</p>
-      <a
-        onClick={()=>router.push(`/educational-modules/${module.id}`)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="p-2 text-center row-start-4 col-start-1 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
-      >
-        View
-      </a>
-      <Button
-       onClick={()=>downloadPDF(module.content)} 
-        className="p-2 text-center row-start-4 col-start-2 border-2 rounded-md border-gray-200 hover:bg-green-500 hover:text-white"
-      > Download PDF
-      </Button>
+      </div>
     </div>
   );
 }
+
+
+function ModuleCard({ module }: { module: EducationModule }): JSX.Element {
+  const router = useRouter();
+
+  return (
+    <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col">
+      {/* Image */}
+      <img
+        src="/bgimages/glowingGlobe.jpg"
+        alt={module.title}
+        className="w-full h-40 object-cover"
+      />
+
+      {/* Content */}
+      <div className="flex-1 p-4 flex flex-col justify-between">
+        <p className="text-lg font-semibold text-gray-800 mb-4">{module.title}</p>
+
+        {/* Buttons */}
+        <div className="flex gap-2 mt-auto">
+          <button
+            onClick={() => router.push(`/educational-modules/${module.id}`)}
+            className="flex-1 border border-green-500 text-green-600 hover:bg-green-500 hover:text-white rounded-md px-4 py-2 text-sm transition-all"
+          >
+            View
+          </button>
+          <Button
+            onClick={() => downloadPDF(module.content)}
+            className="flex-1 bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-sm rounded-md px-4 py-2"
+          >
+            Download
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 

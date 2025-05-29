@@ -83,7 +83,7 @@ export default function RegisterPage() {
     
     try {
       const response = await fetch(
-        'http://localhost:3000/users',
+        'https://localhost:3000/users',
         {
           method: 'POST',
           headers: {

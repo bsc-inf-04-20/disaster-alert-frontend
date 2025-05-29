@@ -63,7 +63,7 @@ const SpatialLayerPicker = () => {
     formData.append('featureName', featureName)
 
     try {
-        const response = await fetch('http://localhost:3000/features/upload', {
+        const response = await fetch('https://localhost:3000/features/upload', {
           method: 'POST',
           body: formData, 
         });

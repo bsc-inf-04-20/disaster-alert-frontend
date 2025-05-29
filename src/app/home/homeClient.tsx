@@ -34,7 +34,6 @@ const getAlertColor = (level:any) => {
 };
 
 // Constants
-const GRAPHOPPER_API_KEY = "f0c392f0-13b6-4fc2-90f4-356817bfdfec";
 const API_BASE_URL = "https://localhost:3000";
 const EMERGENCY_CONTACTS_URL = "http://localhost:4000/emergency-contacts";
 
@@ -357,7 +356,7 @@ function HomePageClient() {
     if (waypoints.length < 2) return;
     
     try {
-      const url = `https://graphhopper.com/api/1/route?point=${waypoints[0][0]},${waypoints[0][1]}&point=${waypoints[1][0]},${waypoints[1][1]}&profile=foot&locale=en&calc_points=true&key=${GRAPHOPPER_API_KEY}`;
+      const url = `https://graphhopper.com/api/1/route?point=${waypoints[0][0]},${waypoints[0][1]}&point=${waypoints[1][0]},${waypoints[1][1]}&profile=foot&locale=en&calc_points=true&key=${process.env.NEXT_PUBLIC_GRAPHOPPER_API_KEY}`;
       
       const response = await fetch(url);
       
@@ -601,14 +600,14 @@ function HomePageClient() {
             onClick={() =>generateTrialDisaster()}
             >
               <Clipboard />
-              Generate Trial Disaster
+              Generate Simulated Disaster
              </Button>
             <Button 
             className='flex gap-2 bg-white text-green-600 hover:bg-green-50 hover:shadow-md shadow transition-all duration-200 rounded-xl'
             onClick={() =>removeTrialDisaster()}
             >
               <Trash2 />
-              Remove Trial Disasters
+              Remove Simulated Disaster
              </Button>  
             <Button 
               onClick={() => router.push("/profile")}
