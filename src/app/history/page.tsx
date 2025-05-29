@@ -2,7 +2,7 @@
 "use client"
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { icons, Search } from 'lucide-react';
+import { AlertTriangle, icons, Mountain, Search, Thermometer, Waves, Wind, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import 'leaflet/dist/leaflet.css';
 import Fuse from 'fuse.js';
 import { getAlertColor } from '../home/homeClient';
 import L from 'leaflet';
+import { getDisasterType } from '../utils/textFormatting';
 
 
 const locationIcon= L.icon({
@@ -30,24 +31,6 @@ const dateOptions: Intl.DateTimeFormatOptions = {
   month: '2-digit',
   year: '2-digit',
 };
-
-function getDisasterType(code: string) {
-  switch (code) {
-    case 'EQ': return 'Earthquake';
-    case 'TC': return 'Tropical Cyclone';
-    case 'FL': return 'Flood';
-    case 'DR': return 'Drought';
-    case 'VO': return 'Volcano';
-    case 'WF': return 'Wildfire';
-    case 'TS': return 'Tsunami';
-    case 'EH': return 'Extra Tropical Cyclone';
-    case 'LS': return 'Landslide';
-    case 'SW': return 'Severe Weather';
-    case 'HU': return 'Humanitarian Crisis';
-    case 'ST': return 'Storm Surge';
-    default: return 'Unknown Disaster Type';
-  }
-}
 
 const fuseOptions = {
   keys: ['name', 'typeName'],
