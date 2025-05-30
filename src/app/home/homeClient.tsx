@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useReducer } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent, CardDescription, CardTitle} from '@/components/ui/card'
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from "react-leaflet";
-import {Activity, AlertCircle, AlertOctagon, AlertTriangle, Calendar, Clipboard, CloudRainWind, Download, Edit, Hand, HomeIcon, MapIcon, MapPin, Navigation, Phone, RotateCcw, Shield, ShieldAlert, TestTube, Trash2, UserCircle} from 'lucide-react';
+import {Activity, AlertCircle, AlertOctagon, AlertTriangle, Calendar, Clipboard, CloudRainWind, Download, Edit, Hand, HomeIcon, Loader, MapIcon, MapPin, Navigation, Phone, RotateCcw, Shield, ShieldAlert, TestTube, Trash2, UserCircle} from 'lucide-react';
 import "leaflet/dist/leaflet.css";
 import { GeoJSON, Polygon } from "react-leaflet";
 import L, from "leaflet";
@@ -16,7 +16,7 @@ import MapUpdater from './mapUpdater';
 import polyline from '@mapbox/polyline';
 import NavigationInstructions from './navInstructions'
 import {Commet} from 'react-loading-indicators';
-import { ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
+import { getDisasterType, ReplaceUnderScoreMakeCamelCase } from '../utils/textFormatting';
 import * as turf from "@turf/turf";
 import { getIconUrl } from '../utils/ImageProgressing';
 import { useRouter } from 'next/navigation';
@@ -35,9 +35,53 @@ export const getAlertColor = (level:any) => {
   }
 };
 
+function getWindSpeedRange(intensityCode: string): string {
+
+  let code;
+
+  code = intensityCode.trim().toUpperCase();
+
+  if(intensityCode.includes('TS') || intensityCode.includes('TD'))
+     code =intensityCode.split(' ')[1]
+
+  // console.log(the code is: ${code})
+
+  switch (code) {
+    case 'TD':
+    case 'TROPICAL DEPRESSION':
+      return '≤ 62 km/h';
+    case 'TS':
+    case 'TROPICAL STORM':
+      return '63–118 km/h';
+    case '1 CAT':
+    case 'CAT 1':
+    case 'CATEGORY 1':
+      return '119–153 km/h';
+    case '2 CAT':
+    case 'CAT 2':
+    case 'CATEGORY 2':
+      return '154–177 km/h';
+    case '3 CAT':
+    case 'CAT 3':
+    case 'CATEGORY 3':
+      return '178–208 km/h';
+    case '4 CAT':
+    case 'CAT 4':
+    case 'CATEGORY 4':
+      return '209–251 km/h';
+    case '5 CAT':
+    case 'CAT 5':
+    case 'CATEGORY 5':
+      return '≥ 252 km/h';
+    default:
+      return 'Unknown intensity code';
+  }
+}
+
 
   const updateUserLocation = async (latitude: number, longitude: number) => {
-    const user =window.localStorage.getItem('user')
+    const userStr =window.localStorage.getItem('user')
+    const user = userStr ? JSON.parse(userStr) : null;
     if(user)
     try {
       const response = await fetch(`https://localhost:3000/users/${user?.id}/locations`, {
@@ -718,8 +762,8 @@ useEffect(() => {
                 !locationState.isAvailable ? (
                   <div className='flex justify-center items-center h-full w-full'>
                     <div className='text-center flex flex-col items-center gap-4'>
-                      <AlertTriangle size={48} className="text-amber-500" />
-                      <span className='text-2xl font-semibold'>Your browser does not support Geo location</span>
+                      <Loader size={48} className="text-green-400" />
+                      <span className='text-2xl font-semibold'>Getting User's Location...</span>
                     </div>
                   </div>
                 ) : !locationState.isEnabled ? (
@@ -979,7 +1023,7 @@ useEffect(() => {
                           Disaster type
                         </div>
                         <div className='text-gray-900 font-semibold'>
-                          {currentDisaster.eventType}
+                          {getDisasterType(currentDisaster.eventType)}
                         </div>
                         
                         <div className='font-medium text-gray-700 flex items-center'>
@@ -995,7 +1039,7 @@ useEffect(() => {
                           Intensity
                         </div>
                         <div className='text-gray-900 font-semibold'>
-                          {`${currentDisaster.latestUpdate.severity} ${currentDisaster.latestUpdate.severityUnit}` }
+                         {getWindSpeedRange(`${currentDisaster.latestUpdate.severity} ${currentDisaster.latestUpdate.severityUnit}`)}
                         </div>
                       </div>
                     </CardContent>
@@ -1004,12 +1048,12 @@ useEffect(() => {
               )}
               
               {/* Action buttons */}
-              <div className='flex flex-col gap-3 w-full p-4 items-center justify-center'>
+              <div className='flex flex-col gap-3 w-full p-4 items-center justify-center flex-wrap'>
                 <Button 
                 onClick={()=>fetchModule()}
-                className='flex gap-2 w-full sm:w-1/2 bg-green-400 hover:bg-green-500 rounded-lg'>
-                  <Shield size={16} />
-                  <span className='text-sm'> Learn Safety during cyclones</span>
+                className='flex gap-2 text-wrap p-6 w-full sm:w-1/2 bg-green-400 hover:bg-green-500 rounded-lg'>
+                  <Shield size={24} />
+                  <span className='text-sm'> Learn Safety during {getDisasterType(currentDisaster?.eventType??"During this Disaster")}</span>
                 </Button>
               </div>
               

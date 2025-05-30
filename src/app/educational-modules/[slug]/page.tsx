@@ -7,6 +7,7 @@ import { useState } from "react";
 import { downloadPDF } from "../downloadPDF";
 import { pauseSpeech, resumeSpeech, stopSpeech, TextToSpeech } from "../textTOSpeech"
 import { Pause, Play } from "lucide-react";
+import { getDisasterType } from "@/app/utils/textFormatting";
 
 type EducationModule = {
   id: number;
@@ -89,7 +90,7 @@ export default function ModulePage({ params }: { params: { slug: string } }) {
   return (
     <div className="flex flex-col p-6 space-y-6 items-center">
       <div className="bg-green-300 flex flex-col ml-6 items-center w-full max-w-[1050px] p-6 rounded-lg">
-        <h2 className="text-3xl font-semibold mb-4"> {module.disasterType}</h2>
+        <h2 className="text-3xl font-semibold mb-4"> {getDisasterType(module.disasterType)}</h2>
         <p className=" mb-6  font-semibold text-xl">{module.description}</p>
       </div>
       <div className=" flex items-left gap-3">

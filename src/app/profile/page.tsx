@@ -1,6 +1,6 @@
 "use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { 
   Briefcase, 
   CheckCircle, 
@@ -260,10 +260,6 @@ function ProfilePage() {
   const [smsChannelNotification, setSMSChannelNotification] = useState(false)
 
 
-    useEffect(()=>{
-    updateNotificationPreference(user?.id!)
-  }, [emailChannelNotification, smsChannelNotification])
-
   useEffect(() => {
     const stored = window.localStorage.getItem('user');
     if (stored) {
@@ -283,13 +279,22 @@ function ProfilePage() {
     }
   }, []);
 
+
+  const notificationsInitialized = useRef(false);
+
   useEffect(()=>{
     if (!user) return;
       setEmailChannelNotification(user.notificationChannelType == 'email' || user.notificationChannelType == 'both'? true:false)
       setSMSChannelNotification(user.notificationChannelType == 'sms' || user.notificationChannelType == 'both'? true:false)
+      notificationsInitialized.current = true;
     }
   , [user]
   )
+
+  useEffect(()=>{
+    if(!notificationsInitialized.current) return;
+    updateNotificationPreference(user?.id!)
+  }, [emailChannelNotification, smsChannelNotification])
 
   const [formData, setFormData] = useState({
     firstName: '',
